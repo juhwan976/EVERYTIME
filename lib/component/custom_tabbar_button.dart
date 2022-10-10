@@ -15,13 +15,10 @@ class CustomTabBarButton extends StatelessWidget {
   final int currentIndex;
   final Function? onPressed;
 
-  final inActiveIconColor = const Color.fromRGBO(208, 208, 208, 1);
-  final activeIconColor = Colors.black;
-
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: appWidth * 0.05 * title.length + appWidth * 0.035,
+      width: appWidth * 0.05 * title.length + appWidth * 0.04,
       child: MaterialButton(
         padding: EdgeInsets.zero,
         highlightColor: Colors.transparent,
@@ -38,8 +35,8 @@ class CustomTabBarButton extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 27,
                   color: (index == currentIndex)
-                      ? activeIconColor
-                      : inActiveIconColor,
+                      ? Theme.of(context).highlightColor
+                      : Theme.of(context).unselectedWidgetColor,
                   fontWeight: (index == currentIndex)
                       ? FontWeight.bold
                       : FontWeight.normal,
@@ -49,7 +46,9 @@ class CustomTabBarButton extends StatelessWidget {
             Container(
               height: 1.5,
               width: appWidth * 0.05 * title.length,
-              color: (index == currentIndex) ? activeIconColor : null,
+              color: (index == currentIndex)
+                  ? Theme.of(context).highlightColor
+                  : null,
             ),
           ],
         ),

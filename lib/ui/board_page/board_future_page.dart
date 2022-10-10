@@ -8,6 +8,9 @@ class BoardFuturePage extends StatelessWidget {
     return Center(
       child: Text(
         'board future page',
+        style: TextStyle(
+          color: Theme.of(context).highlightColor,
+        ),
       ),
     );
   }

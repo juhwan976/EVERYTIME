@@ -8,6 +8,9 @@ class BoardPartyPage extends StatelessWidget {
     return Center(
       child: Text(
         'board party page',
+        style: TextStyle(
+          color: Theme.of(context).highlightColor,
+        ),
       ),
     );
   }

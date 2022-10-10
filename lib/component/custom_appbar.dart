@@ -26,11 +26,11 @@ class CustomAppBar extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
+          SizedBox(
             child: Text(
               title,
               style: TextStyle(
-                color: Colors.black,
+                color: Theme.of(context).highlightColor,
                 fontSize: 27,
                 fontWeight: FontWeight.bold,
               ),

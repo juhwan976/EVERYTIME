@@ -8,6 +8,9 @@ class BoardPRPage extends StatelessWidget {
     return Center(
       child: Text(
         'board pr page',
+        style: TextStyle(
+          color: Theme.of(context).highlightColor,
+        ),
       ),
     );
   }

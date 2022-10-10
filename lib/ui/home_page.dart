@@ -60,7 +60,6 @@ class _HomePageState extends State<HomePage>
     super.build(context);
 
     return Scaffold(
-      backgroundColor: Colors.white,
       body: SafeArea(
         child: Column(
           children: [
@@ -83,6 +82,9 @@ class _HomePageState extends State<HomePage>
                           child: Center(
                             child: Text(
                               '$index',
+                              style: TextStyle(
+                                color: Theme.of(context).highlightColor,
+                              ),
                             ),
                           ),
                         ),

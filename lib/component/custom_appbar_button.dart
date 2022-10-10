@@ -1,4 +1,3 @@
-import 'package:everytime/component/custom_appbar.dart';
 import 'package:everytime/global_variable.dart';
 import 'package:flutter/material.dart';
 
@@ -30,7 +29,7 @@ class CustomAppBarButton extends StatelessWidget {
         ),
         child: Icon(
           icon,
-          color: Colors.black,
+          color: Theme.of(context).highlightColor,
         ),
         onPressed: () {
           onPressed?.call();

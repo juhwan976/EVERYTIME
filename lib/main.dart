@@ -20,7 +20,29 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Everytime Clone',
-      theme: ThemeData(),
+      theme: ThemeData(
+        brightness: Brightness.light,
+        backgroundColor: Colors.white,
+        scaffoldBackgroundColor: Colors.white,
+        unselectedWidgetColor: const Color.fromRGBO(208, 208, 208, 1),
+        dividerColor: Colors.black12,
+        highlightColor: Colors.black, //usage: bottom navigation icon, font
+        hintColor: Colors.black38,
+        secondaryHeaderColor: Colors.black54, //usage: timetable
+        focusColor: const Color.fromRGBO(195, 90, 69, 1),
+      ),
+      darkTheme: ThemeData(
+        brightness: Brightness.dark,
+        backgroundColor: const Color.fromRGBO(44, 44, 44, 1),
+        scaffoldBackgroundColor: const Color.fromRGBO(16, 16, 16, 1),
+        unselectedWidgetColor: const Color.fromRGBO(62, 62, 62, 1),
+        dividerColor: Colors.white10,
+        highlightColor: Colors.white,
+        hintColor: Colors.white54,
+        secondaryHeaderColor: Colors.white54,
+        focusColor: const Color.fromRGBO(195, 90, 69, 1),
+      ),
+      themeMode: ThemeMode.system,
       home: const MainPage(),
     );
   }
@@ -47,9 +69,6 @@ class _MainPageState extends State<MainPage> {
     Icons.notifications_active_rounded,
     Icons.alternate_email_rounded,
   ];
-
-  final inActiveIconColor = const Color.fromRGBO(208, 208, 208, 1);
-  final activeIconColor = Colors.black;
 
   final _mainBloc = MainBloc();
 
@@ -93,13 +112,13 @@ class _MainPageState extends State<MainPage> {
             return Container(
               height: appHeight * 0.11,
               width: appWidth,
-              color: Colors.white,
+              color: Theme.of(context).scaffoldBackgroundColor,
               child: Column(
                 children: [
                   Container(
                     height: 1,
                     width: appWidth,
-                    color: Colors.black12,
+                    color: Theme.of(context).dividerColor,
                   ),
                   Row(
                     children: List.generate(
@@ -118,8 +137,8 @@ class _MainPageState extends State<MainPage> {
                             child: Icon(
                               _bottomNavIcons.elementAt(index),
                               color: (snapshot.data as int == index)
-                                  ? activeIconColor
-                                  : inActiveIconColor,
+                                  ? Theme.of(context).highlightColor
+                                  : Theme.of(context).unselectedWidgetColor,
                             ),
                             onPressed: () {
                               _mainBloc.onTapNavIcon(index);

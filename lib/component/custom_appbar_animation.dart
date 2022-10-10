@@ -43,14 +43,13 @@ class CustomAppBarAnimation extends StatelessWidget {
             margin: EdgeInsets.only(
               left: appWidth * 0.065,
             ),
-            color: Colors.white,
             child: Text(
               title,
               style: TextStyle(
                 color: Color.fromRGBO(
-                  160,
-                  0,
-                  0,
+                  195,
+                  90,
+                  69,
                   _calOpacity(snapshot.data as double),
                 ),
                 fontSize: 14.5,
@@ -61,7 +60,6 @@ class CustomAppBarAnimation extends StatelessWidget {
 
         return Container(
           height: appHeight * 0.053,
-          color: Colors.white,
         );
       },
     );
