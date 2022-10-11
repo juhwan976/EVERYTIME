@@ -29,8 +29,8 @@ class CustomAppBar extends StatelessWidget {
           SizedBox(
             child: Text(
               title,
-              style: TextStyle(
-                color: Theme.of(context).highlightColor,
+              style: const TextStyle(
+                //color: Theme.of(context).highlightColor,
                 fontSize: 27,
                 fontWeight: FontWeight.bold,
               ),

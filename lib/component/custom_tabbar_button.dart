@@ -35,7 +35,7 @@ class CustomTabBarButton extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 27,
                   color: (index == currentIndex)
-                      ? Theme.of(context).highlightColor
+                      ? null
                       : Theme.of(context).unselectedWidgetColor,
                   fontWeight: (index == currentIndex)
                       ? FontWeight.bold

@@ -1,5 +1,6 @@
 import 'dart:developer';
 
+import 'package:everytime/bloc/everytime_user_bloc.dart';
 import 'package:everytime/component/custom_appbar.dart';
 import 'package:everytime/component/custom_appbar_animation.dart';
 import 'package:everytime/component/custom_appbar_button.dart';
@@ -7,9 +8,10 @@ import 'package:everytime/component/custom_container.dart';
 import 'package:everytime/component/custom_container_title.dart';
 import 'package:everytime/component/custom_modal_bottom_sheet.dart';
 import 'package:everytime/component/empty_content.dart';
-import 'package:everytime/component/time_table_page/grade_template.dart';
+import 'package:everytime/component/time_table_page/show_grade_mini.dart';
 import 'package:everytime/component/time_table_page/time_table.dart';
 import 'package:everytime/global_variable.dart';
+import 'package:everytime/ui/time_table_page/grade_calculator_page.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:rxdart/subjects.dart';
@@ -37,6 +39,9 @@ class _TimeTablePageState extends State<TimeTablePage>
 
   final FocusNode _addFrindFocusNode = FocusNode();
 
+  //TODO: 글로벌화 시키기.
+  final _user = EverytimeUserBloc();
+
   void _buildFriendTableDialog(BuildContext context) {
     showModalBottomSheet(
       context: context,
@@ -47,7 +52,6 @@ class _TimeTablePageState extends State<TimeTablePage>
               icon: Icons.add_box_outlined,
               title: '아이디로 친구 추가',
               onPressed: () {
-                //TODO: 창 빌드가 끝났을 때 키보드 보여주게 코드 작성.
                 Navigator.pop(bottomSheetContext);
                 showCupertinoDialog(
                   context: context,
@@ -71,6 +75,7 @@ class _TimeTablePageState extends State<TimeTablePage>
                                       top: appHeight * 0.025,
                                     ),
                                     child: CupertinoTextField(
+                                      autofocus: true,
                                       focusNode: _addFrindFocusNode,
                                       keyboardAppearance: snapshot.data!
                                           ? Brightness.dark
@@ -87,6 +92,7 @@ class _TimeTablePageState extends State<TimeTablePage>
                                       padding: EdgeInsets.zero,
                                       child: const Text('취소'),
                                       onPressed: () {
+                                        _addFrindFocusNode.unfocus();
                                         Navigator.pop(dialogContext);
                                       },
                                     ),
@@ -94,6 +100,7 @@ class _TimeTablePageState extends State<TimeTablePage>
                                       padding: EdgeInsets.zero,
                                       child: const Text('확인'),
                                       onPressed: () {
+                                        _addFrindFocusNode.unfocus();
                                         Navigator.pop(dialogContext);
                                       },
                                     ),
@@ -171,6 +178,31 @@ class _TimeTablePageState extends State<TimeTablePage>
     );
   }
 
+  void _buildGradeCalculatorPage(BuildContext context) {
+    // 참고 페이지 : https://flutter-ko.dev/docs/cookbook/animation/page-route-animation
+    Navigator.of(context).push(
+      PageRouteBuilder(
+        pageBuilder: ((context, animation, secondaryAnimation) =>
+            GradeCalculatorPage(
+              userBloc: _user,
+            )),
+        transitionsBuilder: ((context, animation, secondaryAnimation, child) {
+          const begin = Offset(0.0, 1.0);
+          const end = Offset.zero;
+          const curve = Curves.ease;
+
+          final tween =
+              Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+
+          return SlideTransition(
+            position: animation.drive(tween),
+            child: child,
+          );
+        }),
+      ),
+    );
+  }
+
   @override
   void initState() {
     super.initState();
@@ -180,6 +212,9 @@ class _TimeTablePageState extends State<TimeTablePage>
     });
 
     WidgetsBinding.instance.addObserver(this);
+
+    //TODO: 글로벌화 할 때 지우기.
+    _user.initTest();
   }
 
   @override
@@ -196,6 +231,9 @@ class _TimeTablePageState extends State<TimeTablePage>
     _isDark.close();
 
     _addFrindFocusNode.dispose();
+
+    //TODO: 글로벌화 할 때 지우기.
+    _user.dispose();
   }
 
   @override
@@ -249,7 +287,7 @@ class _TimeTablePageState extends State<TimeTablePage>
                   icon: Icons.format_list_bulleted,
                   onPressed: () {
                     //TODO: 시간표 목록 불러오기.
-                    log('pressed list buttton');
+                    log(Theme.of(context).brightness.toString());
                   },
                 ),
               ],
@@ -302,28 +340,77 @@ class _TimeTablePageState extends State<TimeTablePage>
                             type: CustomContainerTitleType.button,
                             buttonIcon: Icons.create_outlined,
                             onPressed: () {
-                              //TODO: 학점 수정 페이지 작성하기.
-                              log("edit grade button pushed");
+                              _buildGradeCalculatorPage(context);
                             },
                           ),
                           Expanded(
-                            child: Row(
-                              children: [
-                                //TODO: 유저의 학점에 따라서 달라지도록 만들기.
-                                const GradeTemplate(
-                                  title: '평균 학점',
-                                  current: '4.0',
-                                  max: '4.5',
-                                ),
-                                SizedBox(
-                                  width: appWidth * 0.065,
-                                ),
-                                const GradeTemplate(
-                                  title: '취득 학점',
-                                  current: '140',
-                                  max: '140',
-                                ),
-                              ],
+                            child: Padding(
+                              padding: EdgeInsets.only(
+                                right: appWidth * 0.05,
+                                left: appWidth * 0.05,
+                              ),
+                              child: Row(
+                                children: [
+                                  StreamBuilder(
+                                    stream: _user.totalGradeAve,
+                                    builder: (totalGradeAveContext,
+                                        totalGradeAveSnapshot) {
+                                      if (totalGradeAveSnapshot.hasData) {
+                                        return StreamBuilder(
+                                            stream: _user.maxGrade,
+                                            builder: (maxGradeContext,
+                                                maxGradeSnapshot) {
+                                              if (maxGradeSnapshot.hasData) {
+                                                return ShowGradeMini(
+                                                  title: '평균 학점',
+                                                  current: totalGradeAveSnapshot
+                                                      .data
+                                                      .toString(),
+                                                  max: maxGradeSnapshot.data
+                                                      .toString(),
+                                                );
+                                              }
+
+                                              return const SizedBox.shrink();
+                                            });
+                                      }
+
+                                      return const SizedBox.shrink();
+                                    },
+                                  ),
+                                  SizedBox(
+                                    width: appWidth * 0.065,
+                                  ),
+                                  StreamBuilder(
+                                    stream: _user.currentCredit,
+                                    builder: (currentCreditContext,
+                                        currentCreditSnapshot) {
+                                      if (currentCreditSnapshot.hasData) {
+                                        return StreamBuilder(
+                                            stream: _user.targetCredit,
+                                            builder: (targetCreditContext,
+                                                targetCreditSnapshot) {
+                                              if (targetCreditSnapshot
+                                                  .hasData) {
+                                                return ShowGradeMini(
+                                                  title: '취득 학점',
+                                                  current: currentCreditSnapshot
+                                                      .data
+                                                      .toString(),
+                                                  max: targetCreditSnapshot.data
+                                                      .toString(),
+                                                );
+                                              }
+
+                                              return const SizedBox.shrink();
+                                            });
+                                      }
+
+                                      return const SizedBox.shrink();
+                                    },
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ],

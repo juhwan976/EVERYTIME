@@ -25,23 +25,30 @@ class CustomContainerTitle extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            title,
-            style: TextStyle(
-              color: Theme.of(context).highlightColor,
-              fontSize: 21,
-              fontWeight: FontWeight.bold,
+          Container(
+            padding: EdgeInsets.only(
+              left: appWidth * 0.05,
+            ),
+            child: Text(
+              title,
+              style: TextStyle(
+                color: Theme.of(context).highlightColor,
+                fontSize: 21,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
           Container(
             width: (type == CustomContainerTitleType.button)
-                ? appWidth * 0.06
-                : appWidth * 0.14,
+                ? appWidth * 0.11
+                : appWidth * 0.19,
             alignment: Alignment.centerRight,
             child: MaterialButton(
               highlightColor: Colors.transparent,
               splashColor: Colors.transparent,
-              padding: EdgeInsets.zero,
+              padding: EdgeInsets.only(
+                right: appWidth * 0.05,
+              ),
               child: (type == CustomContainerTitleType.button)
                   ? Icon(
                       buttonIcon,

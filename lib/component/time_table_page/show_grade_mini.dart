@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-class GradeTemplate extends StatelessWidget {
-  const GradeTemplate({
+class ShowGradeMini extends StatelessWidget {
+  const ShowGradeMini({
     Key? key,
     required this.title,
     required this.current,

@@ -13,20 +13,20 @@ class CustomContainer extends StatelessWidget {
   final Widget child;
   final bool usePadding;
 
+  //* right, left padding : appWidth * 0.05
+
   @override
   Widget build(BuildContext context) {
     return Container(
       height: height,
       margin: EdgeInsets.only(
-        left: appWidth * 0.02,
         right: appWidth * 0.02,
+        left: appWidth * 0.02,
         bottom: appWidth * 0.02,
       ),
       padding: usePadding
           ? EdgeInsets.only(
               top: appHeight * 0.03,
-              left: appWidth * 0.05,
-              right: appWidth * 0.05,
               bottom: appHeight * 0.03,
             )
           : null,

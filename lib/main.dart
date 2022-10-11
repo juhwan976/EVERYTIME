@@ -29,7 +29,7 @@ class MyApp extends StatelessWidget {
         highlightColor: Colors.black, //usage: bottom navigation icon, font
         hintColor: Colors.black38,
         secondaryHeaderColor: Colors.black54, //usage: timetable
-        focusColor: const Color.fromRGBO(195, 90, 69, 1),
+        focusColor: const Color.fromRGBO(170, 52, 27, 1),
       ),
       darkTheme: ThemeData(
         brightness: Brightness.dark,
@@ -40,7 +40,7 @@ class MyApp extends StatelessWidget {
         highlightColor: Colors.white,
         hintColor: Colors.white54,
         secondaryHeaderColor: Colors.white54,
-        focusColor: const Color.fromRGBO(195, 90, 69, 1),
+        focusColor: const Color.fromRGBO(203, 93, 72, 1),
       ),
       themeMode: ThemeMode.system,
       home: const MainPage(),
