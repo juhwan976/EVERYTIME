@@ -38,6 +38,7 @@ dependencies:
   cupertino_icons: ^1.0.2
   rxdart: ^0.27.5
   scrolls_to_top: ^1.1.1
+  syncfusion_flutter_charts: ^20.3.49
 
 dev_dependencies:
   flutter_test:
