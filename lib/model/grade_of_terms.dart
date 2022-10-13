@@ -1,6 +1,13 @@
+import 'dart:developer';
+
+import 'package:everytime/model/grade_type.dart';
+import 'package:everytime/model/subject_info.dart';
 import 'package:rxdart/subjects.dart';
 
 class GradeOfTerms {
+  GradeOfTerms({
+    required this.term,
+  });
   // 학기 이름
   final String term;
   // 학점 * 점수의 총합
@@ -21,6 +28,52 @@ class GradeOfTerms {
   // 취득 학점
   final _creditAmount = BehaviorSubject<int>.seeded(0);
 
+  // 각종 성적 갯수? 학점?
+  final List<BehaviorSubject<int>> _gradeAmounts = List.generate(
+      GradeType.getGrades().length, (index) => BehaviorSubject.seeded(0));
+
+  Stream<double> get totalGrade => _totalGrade.stream;
+  Stream<int> get totalCredit => _totalCredit.stream;
+  Stream<double> get majorGrade => _majorGrade.stream;
+  Stream<int> get majorCredit => _majorCredit.stream;
+  Stream<int> get pCredit => _pCredit.stream;
+
+  Function(double) get _updateTotalGrade => _totalGrade.sink.add;
+  Function(int) get _updateTotalCredit => _totalCredit.sink.add;
+  Function(double) get _updateMajorGrade => _majorGrade.sink.add;
+  Function(int) get _updateMajorCredit => _majorCredit.sink.add;
+  Function(int) get _updatePCredit => _pCredit.sink.add;
+
+  Stream<double> get totalGradeAve => _totalGradeAve.stream;
+  double get currentTotalGradeAve => _totalGradeAve.value;
+  Stream<double> get majorGradeAve => _majorGradeAve.stream;
+  double get currentMajorGradeAve => _majorGradeAve.value;
+  Stream<int> get creditAmount => _creditAmount.stream;
+
+  Stream<int> gradeAmountsElementAt(int index) => _gradeAmounts[index].stream;
+  void _updateGradeAmountsElementAt(int index, int newValue) =>
+      _gradeAmounts[index].sink.add(newValue);
+  int currentGradeAmountsElementAt(int index) => _gradeAmounts[index].value;
+
+  double get currentTotalGrade => _totalGrade.value;
+  int get currentTotalCredit => _totalCredit.value;
+  double get currentMajorGrade => _majorGrade.value;
+  int get currentMajorCredit => _majorCredit.value;
+  int get currentPCredit => _pCredit.value;
+
+  void _updateTotalGradeAve(double newTotalGrade, int newTotalCredit) =>
+      _totalGradeAve.sink.add(double.parse(
+          (newTotalGrade / ((newTotalCredit == 0) ? 1 : newTotalCredit))
+              .toStringAsFixed(2)));
+
+  void _updateMajorGradeAve(double newMajorGrade, int newMajorCredit) =>
+      _majorGradeAve.sink.add(double.parse(
+          (newMajorGrade / ((newMajorCredit == 0) ? 1 : newMajorCredit))
+              .toStringAsFixed(2)));
+
+  void _updateCreditAmount(int newTotalCredit, int newPCredit) =>
+      _creditAmount.sink.add(newTotalCredit + newPCredit);
+
   // subjects배열 길이의 기본값
   // ignore: constant_identifier_names
   static const DEFAULT_SUBJECTS_LENGTH = 10;
@@ -40,65 +93,61 @@ class GradeOfTerms {
     SubjectInfo(),
   ];
 
-  GradeOfTerms({
-    required this.term,
-  });
-
-  Stream<double> get totalGrade => _totalGrade.stream;
-  Stream<int> get totalCredit => _totalCredit.stream;
-  Stream<double> get majorGrade => _majorGrade.stream;
-  Stream<int> get majorCredit => _majorCredit.stream;
-  Stream<int> get pCredit => _pCredit.stream;
-
-  Function(double) get _updateTotalGrade => _totalGrade.sink.add;
-  Function(int) get _updateTotalCredit => _totalCredit.sink.add;
-  Function(double) get _updateMajorGrade => _majorGrade.sink.add;
-  Function(int) get _updateMajorCredit => _majorCredit.sink.add;
-  Function(int) get _updatePCredit => _pCredit.sink.add;
-
-  Stream<double> get totalGradeAve => _totalGradeAve.stream;
-  Stream<double> get majorGradeAve => _majorGradeAve.stream;
-  Stream<int> get creditAmount => _creditAmount.stream;
-
-  _updateTotalGradeAve(double newTotalGrade, int newTotalCredit) =>
-      _totalGradeAve.sink.add(
-          double.parse((newTotalGrade / newTotalCredit).toStringAsFixed(2)));
-
-  _updateMajorGradeAve(double newMajorGrade, int newMajorCredit) =>
-      _majorGradeAve.sink.add(
-          double.parse((newMajorGrade / newMajorCredit).toStringAsFixed(2)));
-
-  _updateCreditAmount(int newTotalCredit, int newPCredit) =>
-      _creditAmount.sink.add(newTotalCredit + newPCredit);
+  // ignore: prefer_for_elements_to_map_fromiterable, prefer_final_fields
+  Map<GradeType, int> _tempGrades = Map.fromIterable(GradeType.getGrades(),
+      key: (element) => element, value: (element) => 0);
 
   Stream<int> get subjectsLength => _subjectsLength.stream;
+  int get currentSubjectLength => _subjects.length;
   Function(int) get _updateSubjectsLength => _subjectsLength.sink.add;
 
-  updateGrades() {
+  SubjectInfo getSubject(int index) => _subjects[index];
+
+  void updateGrades() {
     double tempTotalGrade = 0.0;
     int tempTotalCredit = 0;
     double tempMajorGrade = 0.0;
     int tempMajorCredit = 0;
     int tempPCredit = 0;
+    _tempGrades.forEach(
+      (key, value) => _tempGrades[key] = 0,
+    );
+
+    int credit = 0;
+    GradeType gradeType = GradeType.f;
+    bool isMajor = false;
+    bool isPNP = false;
 
     for (int i = 0; i < _subjects.length; i++) {
-      if (_subjects[i].credit != 0) {
-        if (_subjects[i].gradeType.grade > 0) {
-          // 학점이 0이 아닌데 성적도 0보다 클 경우,
-          tempTotalGrade += _subjects[i].gradeType.grade * _subjects[i].credit;
-          tempTotalCredit += _subjects[i].credit;
+      credit = _subjects[i].currentCredit;
+      gradeType = _subjects[i].currentGradeType;
+      isMajor = _subjects[i].currentIsMajor;
+      isPNP = _subjects[i].currentIsPNP;
 
-          if (_subjects[i].isMajor) {
-            tempMajorGrade +=
-                _subjects[i].gradeType.grade * _subjects[i].credit;
-            tempMajorCredit += _subjects[i].credit;
+      // log("credit: ${credit}, gradeType: ${gradeType.data}, isMajor: ${isMajor}, isPNP: ${isPNP}");
+
+      if (credit != 0) {
+        if (gradeType.grade > 0) {
+          tempTotalGrade += gradeType.grade * credit;
+          tempTotalCredit += credit;
+
+          if (isMajor) {
+            tempMajorGrade += gradeType.grade * credit;
+            tempMajorCredit += credit;
           }
-        } else if (_subjects[i].isPNP &&
-            _subjects[i].gradeType == GradeType.p) {
-          tempPCredit += _subjects[i].credit;
+        } else if (gradeType == GradeType.p && isPNP) {
+          tempPCredit += credit;
         }
+
+        _tempGrades.update(gradeType, (value) => value += credit);
       }
     }
+
+    // log('${gradeType} : $credit');
+    _tempGrades.forEach(
+      (key, value) =>
+          _updateGradeAmountsElementAt(GradeType.getIndex(key), value),
+    );
 
     _updateTotalGrade(tempTotalGrade);
     _updateTotalCredit(tempTotalCredit);
@@ -111,8 +160,14 @@ class GradeOfTerms {
     _updateCreditAmount(tempTotalCredit, tempPCredit);
   }
 
-  updateSubjects(int index, String title, int credit, GradeType gradeType,
-      bool isPNP, bool isMajor) {
+  void updateSubject(
+    int index, {
+    String? title,
+    int? credit,
+    GradeType? gradeType,
+    bool? isPNP,
+    bool? isMajor,
+  }) {
     if (_subjects.length < index) {
       for (int i = 0; i < index - _subjects.length; i++) {
         _subjects.add(SubjectInfo());
@@ -120,18 +175,37 @@ class GradeOfTerms {
       _updateSubjectsLength(_subjects.length);
     }
 
-    _subjects[index] = SubjectInfo(
-      title: title,
-      credit: credit,
-      gradeType: gradeType,
-      isMajor: isMajor,
-      isPNP: isPNP,
-    );
+    if (title != null) _subjects[index].updateTitle(title);
+    if (credit != null) _subjects[index].updateCredit(credit);
+    if (gradeType != null) _subjects[index].updateGradeType(gradeType);
+    if (isPNP != null) _subjects[index].updateIsPNP(isPNP);
+    if (isMajor != null) _subjects[index].updateIsMajor(isMajor);
 
+    if (credit != null ||
+        gradeType != null ||
+        isPNP != null ||
+        isMajor != null) {
+      updateGrades();
+    }
+  }
+
+  void setDefault(int index) {
+    // if (_subjects[index].currentCredit != 0) {
+    //   _updateGradeAmountsElementAt(
+    //       GradeType.getIndex(_subjects[index].currentGradeType),
+    //       -currentGradeAmountsElementAt(
+    //           GradeType.getIndex(_subjects[index].currentGradeType)));
+    // }
+
+    _subjects[index].updateTitle("");
+    _subjects[index].updateCredit(0);
+    _subjects[index].updateGradeType(GradeType.ap);
+    _subjects[index].updateIsMajor(false);
+    _subjects[index].updateIsPNP(false);
     updateGrades();
   }
 
-  dispose() {
+  void dispose() {
     _totalGrade.close();
     _totalCredit.close();
     _majorGrade.close();
@@ -142,48 +216,13 @@ class GradeOfTerms {
     _majorGradeAve.close();
     _creditAmount.close();
 
+    for (int i = 0; i < _gradeAmounts.length; i++) {
+      _gradeAmounts[i].close();
+    }
+
+    for (int i = 0; i < _subjects.length; i++) {
+      _subjects[i].dispose();
+    }
     _subjectsLength.close();
-  }
-}
-
-class SubjectInfo {
-  final String title;
-  final int credit;
-  final GradeType gradeType;
-  final bool isPNP;
-  final bool isMajor;
-
-  SubjectInfo({
-    this.title = '',
-    this.credit = 0,
-    this.gradeType = GradeType.f,
-    this.isPNP = false,
-    this.isMajor = false,
-  });
-}
-
-enum GradeType {
-  ap('A+', 4.5),
-  az('A0', 4.0),
-  bp('B+', 3.5),
-  bz('B0', 3.0),
-  cp('C+', 2.5),
-  cz('C0', 2.0),
-  dp('D+', 1.5),
-  dz('D0', 1.0),
-  f('F', 0.0),
-  p('P', 0.0),
-  np('NP', 0.0),
-  undefined('undefined', 0.0);
-
-  const GradeType(this.data, this.grade);
-  final String data;
-  final double grade;
-
-  factory GradeType.getByData(String data) {
-    return GradeType.values.firstWhere(
-      (value) => value.data == data,
-      orElse: () => GradeType.undefined,
-    );
   }
 }

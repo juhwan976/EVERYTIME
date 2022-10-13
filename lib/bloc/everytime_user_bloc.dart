@@ -1,4 +1,10 @@
+import 'dart:collection';
+import 'dart:developer';
+
+import 'package:everytime/model/bar_chart_data.dart';
 import 'package:everytime/model/grade_of_terms.dart';
+import 'package:everytime/model/grade_type.dart';
+import 'package:everytime/model/point_chart_data.dart';
 import 'package:rxdart/subjects.dart';
 
 class EverytimeUserBloc {
@@ -14,6 +20,10 @@ class EverytimeUserBloc {
   final _currentCredit = BehaviorSubject<int>.seeded(0);
   // 채워야 하는 학점, 목표 학점
   final _targetCredit = BehaviorSubject<int>.seeded(0);
+  // 점 그래프 데이터
+  final _aveData = BehaviorSubject<List<PointChartData>>.seeded([]);
+  // 바 그래프 데이터
+  final _percentData = BehaviorSubject<List<BarChartData>>.seeded([]);
 
   Stream<double> get totalGradeAve => _totalGradeAve.stream;
   Function(double) get _updateTotalGradeAve => _totalGradeAve.sink.add;
@@ -69,72 +79,107 @@ class EverytimeUserBloc {
     ),
   ];
 
-  List<String> get getTerms =>
-      List.generate(_gradeOfTerms.length, (index) => _gradeOfTerms[index].term);
-  int get getTermsLength => _gradeOfTerms.length;
-  String getTerm(int index) => _gradeOfTerms[index].term;
-  Stream<double> getTotalGrade(int index) => _gradeOfTerms[index].totalGrade;
-  Stream<int> getTotalCredit(int index) => _gradeOfTerms[index].totalCredit;
-  Stream<double> getMajorGrade(int index) => _gradeOfTerms[index].majorGrade;
-  Stream<int> getMajorCredit(int index) => _gradeOfTerms[index].majorCredit;
-  Stream<int> getPCredit(int index) => _gradeOfTerms[index].pCredit;
-  Stream<int> getSubjectsLength(int index) =>
-      _gradeOfTerms[index].subjectsLength;
+  // ignore: prefer_for_elements_to_map_fromiterable, prefer_final_fields
+  Map<GradeType, int> _tempGradesAmount = Map<GradeType, int>.fromIterable(
+      GradeType.getGrades(),
+      key: (element) => element,
+      value: (element) => 0);
 
+  int get getTermsLength => _gradeOfTerms.length;
+  GradeOfTerms getTerm(int index) => _gradeOfTerms[index];
   Stream<double> getTotalGradeAve(int index) =>
       _gradeOfTerms[index].totalGradeAve;
   Stream<double> getMajorGradeAve(int index) =>
       _gradeOfTerms[index].majorGradeAve;
   Stream<int> getCreditAmount(int index) => _gradeOfTerms[index].creditAmount;
-  updateTerms(int termIndex, int subjectIndex, SubjectInfo subjectInfo) {
-    _gradeOfTerms[termIndex].updateSubjects(
-      subjectIndex,
-      subjectInfo.title,
-      subjectInfo.credit,
-      subjectInfo.gradeType,
-      subjectInfo.isPNP,
-      subjectInfo.isMajor,
-    );
 
+  void updateData() {
     double tempTotalGrade = 0.0;
     int tempTotalCredit = 0;
     double tempMajorGrade = 0.0;
     int tempMajorCredit = 0;
     int tempPCredit = 0;
+    List<PointChartData> tempPointChartDataList = [];
+    _tempGradesAmount.forEach(
+      (key, value) => _tempGradesAmount[key] = 0,
+    );
 
     for (int i = 0; i < _gradeOfTerms.length; i++) {
-      getTotalGrade(i).last.then(
-            (value) => tempTotalGrade += value,
-          );
-      getTotalCredit(i).last.then(
-            (value) => tempTotalCredit += value,
-          );
-      getMajorGrade(i).last.then(
-            (value) => tempMajorGrade += value,
-          );
-      getMajorCredit(i).last.then(
-            (value) => tempMajorCredit += value,
-          );
-      getPCredit(i).last.then((value) => tempPCredit += value);
+      tempTotalGrade += getTerm(i).currentTotalGrade;
+      tempTotalCredit += getTerm(i).currentTotalCredit;
+      tempMajorGrade += getTerm(i).currentMajorGrade;
+      tempMajorCredit += getTerm(i).currentMajorCredit;
+      tempPCredit += getTerm(i).currentPCredit;
+      for (int j = 0; j < GradeType.getGrades().length; j++) {
+        _tempGradesAmount.update(GradeType.getByIndex(j),
+            (value) => value += getTerm(i).currentGradeAmountsElementAt(j));
+      }
     }
 
-    _updateTotalGradeAve(
-        double.parse((tempTotalGrade / tempTotalCredit).toStringAsFixed(2)));
-    _updateMajorGradeAve(
-        double.parse((tempMajorGrade / tempMajorCredit).toStringAsFixed(2)));
+    _updateTotalGradeAve(double.parse(
+        (tempTotalGrade / (tempTotalCredit == 0 ? 1 : tempTotalCredit))
+            .toStringAsFixed(2)));
+    _updateMajorGradeAve(double.parse(
+        (tempMajorGrade / (tempMajorCredit == 0 ? 1 : tempMajorCredit))
+            .toStringAsFixed(2)));
     _updateCurrentCredit(tempTotalCredit + tempPCredit);
+
+    for (int i = 0; i < getTermsLength; i++) {
+      if (getTerm(i).currentTotalGradeAve == 0.0 &&
+          getTerm(i).currentMajorGradeAve == 0.0) {
+        continue;
+      }
+      tempPointChartDataList.add(PointChartData(
+        term: getTerm(i).term,
+        totalGrade: (getTerm(i).currentTotalGradeAve == 0.0)
+            ? null
+            : getTerm(i).currentTotalGradeAve,
+        majorGrade: (getTerm(i).currentMajorGradeAve == 0.0)
+            ? null
+            : getTerm(i).currentMajorGradeAve,
+      ));
+    }
+    _updateAveData(tempPointChartDataList);
+    _updatePercentData();
+    //tempGradesAmount._updatePercentData(tempGradesAmountList);
   }
 
-  initTest() {
+  Stream<List<PointChartData>> get aveData => _aveData.stream;
+  Function(List<PointChartData>) get _updateAveData => _aveData.sink.add;
+
+  Stream<List<BarChartData>> get percentData => _percentData.stream;
+  void _updatePercentData() {
+    Map<GradeType, int> sortByValue = Map.fromEntries(
+        _tempGradesAmount.entries.toList()
+          ..sort((e1, e2) => e2.value.compareTo(e1.value)));
+
+    List<BarChartData> tempList = [];
+
+    for (int i = 0; i < 5; i++) {
+      if (sortByValue.values.elementAt(i) == 0) {
+        continue;
+      }
+
+      tempList.add(BarChartData(
+          percent:
+              (sortByValue.values.elementAt(i) / _currentCredit.value * 100)
+                  .round(),
+          grade: (sortByValue.keys.elementAt(i).data)));
+    }
+
+    _percentData.sink.add(tempList);
+  }
+
+  void initTest() {
     _updateTotalGradeAve(4.12);
     _updateMajorGradeAve(4.22);
     _updateMaxGrade(4.5);
 
-    _updateCurrentCredit(143);
+    _updateCurrentCredit(102);
     updateTargetCredit(140);
   }
 
-  dispose() {
+  void dispose() {
     _userName.close();
 
     _totalGradeAve.close();
@@ -147,5 +192,8 @@ class EverytimeUserBloc {
     for (int i = 0; i < _gradeOfTerms.length; i++) {
       _gradeOfTerms[i].dispose();
     }
+
+    _aveData.close();
+    _percentData.close();
   }
 }
