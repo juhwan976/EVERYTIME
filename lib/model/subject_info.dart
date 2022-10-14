@@ -2,10 +2,15 @@ import 'package:everytime/model/grade_type.dart';
 import 'package:rxdart/subjects.dart';
 
 class SubjectInfo {
+  // 과목명
   final _title = BehaviorSubject<String>.seeded('');
+  // 학점
   final _credit = BehaviorSubject<int>.seeded(0);
+  // 성적
   final _gradeType = BehaviorSubject<GradeType>.seeded(GradeType.ap);
+  // p 또는 np 과목 여부
   final _isPNP = BehaviorSubject<bool>.seeded(false);
+  // 전공 과목 여부
   final _isMajor = BehaviorSubject<bool>.seeded(false);
 
   Stream<String> get title => _title.stream;

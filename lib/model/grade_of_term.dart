@@ -4,21 +4,21 @@ import 'package:everytime/model/grade_type.dart';
 import 'package:everytime/model/subject_info.dart';
 import 'package:rxdart/subjects.dart';
 
-class GradeOfTerms {
-  GradeOfTerms({
+class GradeOfTerm {
+  GradeOfTerm({
     required this.term,
   });
   // 학기 이름
   final String term;
   // 학점 * 점수의 총합
   final _totalGrade = BehaviorSubject<double>.seeded(0.0);
-  // P 과목의 학점을 제외한 모든 학점
+  // P 과목 학점을 제외한 모든 학점
   final _totalCredit = BehaviorSubject<int>.seeded(0);
   // 전공 과목의 학점 * 점수의 총합
   final _majorGrade = BehaviorSubject<double>.seeded(0.0);
-  // 전공과목의 P 과목의 학점을 제외한 모든 학점
+  // 전공 과목의 P 과목 학점을 제외한 모든 학점
   final _majorCredit = BehaviorSubject<int>.seeded(0);
-  // P 과목의 학점
+  // P 과목 학점
   final _pCredit = BehaviorSubject<int>.seeded(0);
 
   // 평점
@@ -79,6 +79,7 @@ class GradeOfTerms {
   static const DEFAULT_SUBJECTS_LENGTH = 10;
   // subjects배열 길이
   final _subjectsLength = BehaviorSubject<int>.seeded(DEFAULT_SUBJECTS_LENGTH);
+  // 과목 정보들
   // ignore: prefer_final_fields
   List<SubjectInfo> _subjects = [
     SubjectInfo(),
@@ -92,7 +93,7 @@ class GradeOfTerms {
     SubjectInfo(),
     SubjectInfo(),
   ];
-
+  // 임시로 각 성적의 총합을 저장할 공간. 자주 사용하는거 같아서 전역 변수로 선언해줌.
   // ignore: prefer_for_elements_to_map_fromiterable, prefer_final_fields
   Map<GradeType, int> _tempGrades = Map.fromIterable(GradeType.getGrades(),
       key: (element) => element, value: (element) => 0);
@@ -103,6 +104,7 @@ class GradeOfTerms {
 
   SubjectInfo getSubject(int index) => _subjects[index];
 
+  // 성적 업데이트
   void updateGrades() {
     double tempTotalGrade = 0.0;
     int tempTotalCredit = 0;
@@ -124,8 +126,6 @@ class GradeOfTerms {
       isMajor = _subjects[i].currentIsMajor;
       isPNP = _subjects[i].currentIsPNP;
 
-      // log("credit: ${credit}, gradeType: ${gradeType.data}, isMajor: ${isMajor}, isPNP: ${isPNP}");
-
       if (credit != 0) {
         if (gradeType.grade > 0) {
           tempTotalGrade += gradeType.grade * credit;
@@ -143,7 +143,6 @@ class GradeOfTerms {
       }
     }
 
-    // log('${gradeType} : $credit');
     _tempGrades.forEach(
       (key, value) =>
           _updateGradeAmountsElementAt(GradeType.getIndex(key), value),
@@ -190,13 +189,6 @@ class GradeOfTerms {
   }
 
   void setDefault(int index) {
-    // if (_subjects[index].currentCredit != 0) {
-    //   _updateGradeAmountsElementAt(
-    //       GradeType.getIndex(_subjects[index].currentGradeType),
-    //       -currentGradeAmountsElementAt(
-    //           GradeType.getIndex(_subjects[index].currentGradeType)));
-    // }
-
     _subjects[index].updateTitle("");
     _subjects[index].updateCredit(0);
     _subjects[index].updateGradeType(GradeType.ap);

@@ -29,6 +29,8 @@ class MyApp extends StatelessWidget {
         highlightColor: Colors.black, //usage: bottom navigation icon, font
         hintColor: Colors.black38,
         secondaryHeaderColor: Colors.black54, //usage: timetable
+        cardColor: const Color.fromRGBO(
+            245, 245, 245, 1), // usage: grade_calculator_page
         focusColor: const Color.fromARGB(255, 212, 28, 0),
       ),
       darkTheme: ThemeData(
@@ -40,6 +42,7 @@ class MyApp extends StatelessWidget {
         highlightColor: Colors.white,
         hintColor: Colors.white54,
         secondaryHeaderColor: Colors.white54,
+        cardColor: const Color.fromRGBO(26, 26, 26, 1),
         focusColor: const Color.fromRGBO(203, 93, 72, 1),
       ),
       themeMode: ThemeMode.system,

@@ -2,7 +2,7 @@ import 'dart:collection';
 import 'dart:developer';
 
 import 'package:everytime/model/bar_chart_data.dart';
-import 'package:everytime/model/grade_of_terms.dart';
+import 'package:everytime/model/grade_of_term.dart';
 import 'package:everytime/model/grade_type.dart';
 import 'package:everytime/model/point_chart_data.dart';
 import 'package:rxdart/subjects.dart';
@@ -15,7 +15,7 @@ class EverytimeUserBloc {
   // 전공 평점
   final _majorGradeAve = BehaviorSubject<double>.seeded(0.0);
   // 평점의 최댓값. 혹시나 해서 만들어뒀다.
-  final _maxGrade = BehaviorSubject<double>.seeded(4.5);
+  final _maxAve = BehaviorSubject<double>.seeded(4.5);
   // 현재 획득한 학점
   final _currentCredit = BehaviorSubject<int>.seeded(0);
   // 채워야 하는 학점, 목표 학점
@@ -29,56 +29,58 @@ class EverytimeUserBloc {
   Function(double) get _updateTotalGradeAve => _totalGradeAve.sink.add;
   Stream<double> get majorGradeAve => _majorGradeAve.stream;
   Function(double) get _updateMajorGradeAve => _majorGradeAve.sink.add;
-  Stream<double> get maxGrade => _maxGrade.stream;
-  Function(double) get _updateMaxGrade => _maxGrade.sink.add;
+  Stream<double> get maxAve => _maxAve.stream;
+  Function(double) get _updateMaxAve => _maxAve.sink.add;
 
   Stream<int> get currentCredit => _currentCredit.stream;
   Function(int) get _updateCurrentCredit => _currentCredit.sink.add;
   Stream<int> get targetCredit => _targetCredit.stream;
   Function(int) get updateTargetCredit => _targetCredit.sink.add;
 
-  final List<GradeOfTerms> _gradeOfTerms = [
-    GradeOfTerms(
+  // 학기의 성적 정보
+  final List<GradeOfTerm> _gradeOfTerms = [
+    GradeOfTerm(
       term: '1학년 1학기',
     ),
-    GradeOfTerms(
+    GradeOfTerm(
       term: '1학년 2학기',
     ),
-    GradeOfTerms(
+    GradeOfTerm(
       term: '2학년 1학기',
     ),
-    GradeOfTerms(
+    GradeOfTerm(
       term: '2학년 2학기',
     ),
-    GradeOfTerms(
+    GradeOfTerm(
       term: '3학년 1학기',
     ),
-    GradeOfTerms(
+    GradeOfTerm(
       term: '3학년 2학기',
     ),
-    GradeOfTerms(
+    GradeOfTerm(
       term: '4학년 1학기',
     ),
-    GradeOfTerms(
+    GradeOfTerm(
       term: '4학년 2학기',
     ),
-    GradeOfTerms(
+    GradeOfTerm(
       term: '5학년 1학기',
     ),
-    GradeOfTerms(
+    GradeOfTerm(
       term: '5학년 2학기',
     ),
-    GradeOfTerms(
+    GradeOfTerm(
       term: '6학년 1학기',
     ),
-    GradeOfTerms(
+    GradeOfTerm(
       term: '6학년 2학기',
     ),
-    GradeOfTerms(
+    GradeOfTerm(
       term: '기타 학기',
     ),
   ];
 
+  // 임시로 각 성적의 총합들을 저장할 공간. 자주 용하는거 같아서 전역 변수로 선언해줌.
   // ignore: prefer_for_elements_to_map_fromiterable, prefer_final_fields
   Map<GradeType, int> _tempGradesAmount = Map<GradeType, int>.fromIterable(
       GradeType.getGrades(),
@@ -86,7 +88,7 @@ class EverytimeUserBloc {
       value: (element) => 0);
 
   int get getTermsLength => _gradeOfTerms.length;
-  GradeOfTerms getTerm(int index) => _gradeOfTerms[index];
+  GradeOfTerm getTerm(int index) => _gradeOfTerms[index];
   Stream<double> getTotalGradeAve(int index) =>
       _gradeOfTerms[index].totalGradeAve;
   Stream<double> getMajorGradeAve(int index) =>
@@ -141,7 +143,6 @@ class EverytimeUserBloc {
     }
     _updateAveData(tempPointChartDataList);
     _updatePercentData();
-    //tempGradesAmount._updatePercentData(tempGradesAmountList);
   }
 
   Stream<List<PointChartData>> get aveData => _aveData.stream;
@@ -171,12 +172,53 @@ class EverytimeUserBloc {
   }
 
   void initTest() {
-    _updateTotalGradeAve(4.12);
-    _updateMajorGradeAve(4.22);
-    _updateMaxGrade(4.5);
-
-    _updateCurrentCredit(102);
     updateTargetCredit(140);
+
+    getTerm(0).updateSubject(
+      0,
+      credit: 9,
+      gradeType: GradeType.ap,
+    );
+    getTerm(0).updateSubject(
+      1,
+      credit: 5,
+      gradeType: GradeType.az,
+    );
+    getTerm(0).updateSubject(
+      2,
+      credit: 5,
+      gradeType: GradeType.ap,
+      isMajor: true,
+    );
+    getTerm(0).updateSubject(
+      3,
+      credit: 2,
+      gradeType: GradeType.bp,
+    );
+
+    getTerm(1).updateSubject(
+      0,
+      credit: 4,
+      gradeType: GradeType.ap,
+    );
+    getTerm(1).updateSubject(
+      1,
+      credit: 6,
+      gradeType: GradeType.az,
+    );
+    getTerm(1).updateSubject(
+      2,
+      credit: 6,
+      gradeType: GradeType.ap,
+      isMajor: true,
+    );
+    getTerm(1).updateSubject(
+      3,
+      credit: 4,
+      gradeType: GradeType.bz,
+    );
+
+    updateData();
   }
 
   void dispose() {
@@ -184,7 +226,7 @@ class EverytimeUserBloc {
 
     _totalGradeAve.close();
     _majorGradeAve.close();
-    _maxGrade.close();
+    _maxAve.close();
 
     _currentCredit.close();
     _targetCredit.close();

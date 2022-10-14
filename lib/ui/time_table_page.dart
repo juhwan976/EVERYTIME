@@ -357,16 +357,16 @@ class _TimeTablePageState extends State<TimeTablePage>
                                         totalGradeAveSnapshot) {
                                       if (totalGradeAveSnapshot.hasData) {
                                         return StreamBuilder(
-                                            stream: _user.maxGrade,
-                                            builder: (maxGradeContext,
-                                                maxGradeSnapshot) {
-                                              if (maxGradeSnapshot.hasData) {
+                                            stream: _user.maxAve,
+                                            builder: (maxAveContext,
+                                                maxAveSnapshot) {
+                                              if (maxAveSnapshot.hasData) {
                                                 return ShowGradeMini(
                                                   title: '평균 학점',
                                                   current: totalGradeAveSnapshot
                                                       .data
                                                       .toString(),
-                                                  max: maxGradeSnapshot.data
+                                                  max: maxAveSnapshot.data
                                                       .toString(),
                                                 );
                                               }

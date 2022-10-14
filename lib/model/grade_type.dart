@@ -16,13 +16,6 @@ enum GradeType {
   final String data;
   final double grade;
 
-  factory GradeType.getByData(String data) {
-    return GradeType.values.firstWhere(
-      (value) => value.data == data,
-      orElse: () => GradeType.undefined,
-    );
-  }
-
   static getByIndex(int index) {
     return GradeType.getGrades()[index];
   }
