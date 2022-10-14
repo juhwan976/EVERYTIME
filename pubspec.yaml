@@ -40,6 +40,7 @@ dependencies:
   scrolls_to_top: ^1.1.1
   syncfusion_flutter_charts: ^20.3.49
   keyboard_actions: ^4.1.0
+  positioned_tap_detector_2: ^1.0.4
 
 dev_dependencies:
   flutter_test:

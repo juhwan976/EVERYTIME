@@ -20,27 +20,19 @@ class TimeTablePage extends StatefulWidget {
   const TimeTablePage({
     Key? key,
     required this.scrollController,
+    required this.userBloc,
   }) : super(key: key);
 
   final ScrollController scrollController;
+  final EverytimeUserBloc userBloc;
 
   @override
   State<TimeTablePage> createState() => _TimeTablePageState();
 }
 
 class _TimeTablePageState extends State<TimeTablePage>
-    with AutomaticKeepAliveClientMixin, WidgetsBindingObserver {
+    with AutomaticKeepAliveClientMixin {
   final BehaviorSubject<double> _scrollOffset = BehaviorSubject.seeded(0);
-  final _isDark = BehaviorSubject<bool>.seeded(
-    WidgetsBinding.instance.window.platformBrightness == Brightness.dark
-        ? true
-        : false,
-  );
-
-  final FocusNode _addFrindFocusNode = FocusNode();
-
-  //TODO: 글로벌화 시키기.
-  final _user = EverytimeUserBloc();
 
   void _buildFriendTableDialog(BuildContext context) {
     showModalBottomSheet(
@@ -57,9 +49,9 @@ class _TimeTablePageState extends State<TimeTablePage>
                   context: context,
                   builder: (dialogContext) {
                     return StatefulBuilder(
-                      builder: (statefulContext, statefulSetState) {
+                      builder: (statefulContext, _) {
                         return StreamBuilder(
-                          stream: _isDark.stream,
+                          stream: widget.userBloc.isDark,
                           builder: (streamBuilderContext, snapshot) {
                             if (snapshot.hasData) {
                               return Theme(
@@ -76,7 +68,6 @@ class _TimeTablePageState extends State<TimeTablePage>
                                     ),
                                     child: CupertinoTextField(
                                       autofocus: true,
-                                      focusNode: _addFrindFocusNode,
                                       keyboardAppearance: snapshot.data!
                                           ? Brightness.dark
                                           : Brightness.light,
@@ -92,7 +83,6 @@ class _TimeTablePageState extends State<TimeTablePage>
                                       padding: EdgeInsets.zero,
                                       child: const Text('취소'),
                                       onPressed: () {
-                                        _addFrindFocusNode.unfocus();
                                         Navigator.pop(dialogContext);
                                       },
                                     ),
@@ -100,7 +90,6 @@ class _TimeTablePageState extends State<TimeTablePage>
                                       padding: EdgeInsets.zero,
                                       child: const Text('확인'),
                                       onPressed: () {
-                                        _addFrindFocusNode.unfocus();
                                         Navigator.pop(dialogContext);
                                       },
                                     ),
@@ -130,11 +119,11 @@ class _TimeTablePageState extends State<TimeTablePage>
                   context: context,
                   builder: (dialogContext) {
                     return StatefulBuilder(
-                      builder: (statefulContext, statefulSetState) {
+                      builder: (statefulContext, _) {
                         indicatorContext = statefulContext;
 
                         return StreamBuilder(
-                          stream: _isDark.stream,
+                          stream: widget.userBloc.isDark,
                           builder: (streamBuilderContext, snapshot) {
                             if (snapshot.hasData) {
                               return Theme(
@@ -180,27 +169,30 @@ class _TimeTablePageState extends State<TimeTablePage>
 
   void _buildGradeCalculatorPage(BuildContext context) {
     // 참고 페이지 : https://flutter-ko.dev/docs/cookbook/animation/page-route-animation
-    Navigator.of(context).push(
-      PageRouteBuilder(
-        pageBuilder: ((context, animation, secondaryAnimation) =>
-            GradeCalculatorPage(
-              userBloc: _user,
-            )),
-        transitionsBuilder: ((context, animation, secondaryAnimation, child) {
-          const begin = Offset(0.0, 1.0);
-          const end = Offset.zero;
-          const curve = Curves.ease;
+    Navigator.of(context)
+        .push(
+          PageRouteBuilder(
+            pageBuilder: ((context, animation, secondaryAnimation) =>
+                GradeCalculatorPage(
+                  userBloc: widget.userBloc,
+                )),
+            transitionsBuilder:
+                ((context, animation, secondaryAnimation, child) {
+              const begin = Offset(0.0, 1.0);
+              const end = Offset.zero;
+              const curve = Curves.ease;
 
-          final tween =
-              Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+              final tween =
+                  Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
 
-          return SlideTransition(
-            position: animation.drive(tween),
-            child: child,
-          );
-        }),
-      ),
-    );
+              return SlideTransition(
+                position: animation.drive(tween),
+                child: child,
+              );
+            }),
+          ),
+        )
+        .whenComplete(() => widget.userBloc.updateIsShowingKeyboard(false));
   }
 
   @override
@@ -210,11 +202,6 @@ class _TimeTablePageState extends State<TimeTablePage>
     widget.scrollController.addListener(() {
       _scrollOffset.sink.add(widget.scrollController.offset);
     });
-
-    WidgetsBinding.instance.addObserver(this);
-
-    //TODO: 글로벌화 할 때 지우기.
-    _user.initTest();
   }
 
   @override
@@ -225,30 +212,7 @@ class _TimeTablePageState extends State<TimeTablePage>
       _scrollOffset.sink.add(widget.scrollController.offset);
     });
 
-    WidgetsBinding.instance.removeObserver(this);
-
     _scrollOffset.close();
-    _isDark.close();
-
-    _addFrindFocusNode.dispose();
-
-    //TODO: 글로벌화 할 때 지우기.
-    _user.dispose();
-  }
-
-  @override
-  void didChangePlatformBrightness() {
-    super.didChangePlatformBrightness();
-
-    if (WidgetsBinding.instance.window.platformBrightness == Brightness.dark) {
-      _isDark.sink.add(true);
-    } else {
-      _isDark.sink.add(false);
-    }
-
-    if (_addFrindFocusNode.hasFocus) {
-      _addFrindFocusNode.unfocus();
-    }
   }
 
   @override
@@ -352,12 +316,12 @@ class _TimeTablePageState extends State<TimeTablePage>
                               child: Row(
                                 children: [
                                   StreamBuilder(
-                                    stream: _user.totalGradeAve,
+                                    stream: widget.userBloc.totalGradeAve,
                                     builder: (totalGradeAveContext,
                                         totalGradeAveSnapshot) {
                                       if (totalGradeAveSnapshot.hasData) {
                                         return StreamBuilder(
-                                            stream: _user.maxAve,
+                                            stream: widget.userBloc.maxAve,
                                             builder: (maxAveContext,
                                                 maxAveSnapshot) {
                                               if (maxAveSnapshot.hasData) {
@@ -382,28 +346,28 @@ class _TimeTablePageState extends State<TimeTablePage>
                                     width: appWidth * 0.065,
                                   ),
                                   StreamBuilder(
-                                    stream: _user.currentCredit,
+                                    stream: widget.userBloc.currentCredit,
                                     builder: (currentCreditContext,
                                         currentCreditSnapshot) {
                                       if (currentCreditSnapshot.hasData) {
                                         return StreamBuilder(
-                                            stream: _user.targetCredit,
-                                            builder: (targetCreditContext,
-                                                targetCreditSnapshot) {
-                                              if (targetCreditSnapshot
-                                                  .hasData) {
-                                                return ShowGradeMini(
-                                                  title: '취득 학점',
-                                                  current: currentCreditSnapshot
-                                                      .data
-                                                      .toString(),
-                                                  max: targetCreditSnapshot.data
-                                                      .toString(),
-                                                );
-                                              }
+                                          stream: widget.userBloc.targetCredit,
+                                          builder: (targetCreditContext,
+                                              targetCreditSnapshot) {
+                                            if (targetCreditSnapshot.hasData) {
+                                              return ShowGradeMini(
+                                                title: '취득 학점',
+                                                current: currentCreditSnapshot
+                                                    .data
+                                                    .toString(),
+                                                max: targetCreditSnapshot.data
+                                                    .toString(),
+                                              );
+                                            }
 
-                                              return const SizedBox.shrink();
-                                            });
+                                            return const SizedBox.shrink();
+                                          },
+                                        );
                                       }
 
                                       return const SizedBox.shrink();

@@ -78,10 +78,10 @@ class GradeOfTerm {
   // ignore: constant_identifier_names
   static const DEFAULT_SUBJECTS_LENGTH = 10;
   // subjects배열 길이
-  final _subjectsLength = BehaviorSubject<int>.seeded(DEFAULT_SUBJECTS_LENGTH);
+  // final _subjectsLength = BehaviorSubject<int>.seeded(DEFAULT_SUBJECTS_LENGTH);
   // 과목 정보들
   // ignore: prefer_final_fields
-  List<SubjectInfo> _subjects = [
+  final _subjects = BehaviorSubject<List<SubjectInfo>>.seeded([
     SubjectInfo(),
     SubjectInfo(),
     SubjectInfo(),
@@ -92,17 +92,66 @@ class GradeOfTerm {
     SubjectInfo(),
     SubjectInfo(),
     SubjectInfo(),
-  ];
+  ]);
   // 임시로 각 성적의 총합을 저장할 공간. 자주 사용하는거 같아서 전역 변수로 선언해줌.
   // ignore: prefer_for_elements_to_map_fromiterable, prefer_final_fields
   Map<GradeType, int> _tempGrades = Map.fromIterable(GradeType.getGrades(),
       key: (element) => element, value: (element) => 0);
 
-  Stream<int> get subjectsLength => _subjectsLength.stream;
-  int get currentSubjectLength => _subjects.length;
-  Function(int) get _updateSubjectsLength => _subjectsLength.sink.add;
+  // Stream<int> get subjectsLength => _subjectsLength.stream;
+  // int get currentSubjectLength => _subjects.value.length;
+  // Function(int) get _updateSubjectsLength => _subjectsLength.sink.add;
 
-  SubjectInfo getSubject(int index) => _subjects[index];
+  // SubjectInfo getCurrentSubject(int index) => _subjects.value[index];
+  Stream<List<SubjectInfo>> get subjects => _subjects.stream;
+  List<SubjectInfo> get currentSubjects => _subjects.value;
+  void updateSubjects(List<SubjectInfo> newSubjects) =>
+      _subjects.sink.add(newSubjects);
+
+  void addSubject() {
+    List<SubjectInfo> tempList = currentSubjects;
+    tempList.add(SubjectInfo());
+    updateSubjects(tempList);
+    // _updateSubjectsLength(_subjects.length);
+  }
+
+  void removeEmptySubjects() {
+    if (currentSubjects.length == DEFAULT_SUBJECTS_LENGTH) return;
+
+    SubjectInfo targetSubject;
+    List<int> removeIndexes = [];
+    List<SubjectInfo> tempList = currentSubjects;
+
+    for (int i = 0; i < (tempList.length - DEFAULT_SUBJECTS_LENGTH); i++) {
+      targetSubject = tempList[DEFAULT_SUBJECTS_LENGTH + i];
+      if (targetSubject.currentIsMajor == false &&
+          targetSubject.currentCredit == 0 &&
+          targetSubject.currentTitle.isEmpty &&
+          targetSubject.currentGradeType == GradeType.ap) {
+        removeIndexes.add(DEFAULT_SUBJECTS_LENGTH + i);
+      }
+    }
+
+    for (int i = removeIndexes.length - 1; i >= 0; i--) {
+      if (i < 0) {
+        continue;
+      }
+
+      tempList.removeAt(removeIndexes[i]);
+    }
+    updateSubjects(tempList);
+    // _updateSubjectsLength(_subjects.length);
+  }
+
+  void removeAdditionalSubjects() {
+    if (currentSubjects.length == DEFAULT_SUBJECTS_LENGTH) return;
+    List<SubjectInfo> tempList = currentSubjects;
+    for (int i = 0; i < (tempList.length - DEFAULT_SUBJECTS_LENGTH); i++) {
+      tempList.removeLast();
+    }
+
+    updateSubjects(tempList);
+  }
 
   // 성적 업데이트
   void updateGrades() {
@@ -120,11 +169,11 @@ class GradeOfTerm {
     bool isMajor = false;
     bool isPNP = false;
 
-    for (int i = 0; i < _subjects.length; i++) {
-      credit = _subjects[i].currentCredit;
-      gradeType = _subjects[i].currentGradeType;
-      isMajor = _subjects[i].currentIsMajor;
-      isPNP = _subjects[i].currentIsPNP;
+    for (int i = 0; i < currentSubjects.length; i++) {
+      credit = currentSubjects[i].currentCredit;
+      gradeType = currentSubjects[i].currentGradeType;
+      isMajor = currentSubjects[i].currentIsMajor;
+      isPNP = currentSubjects[i].currentIsPNP;
 
       if (credit != 0) {
         if (gradeType.grade > 0) {
@@ -167,18 +216,11 @@ class GradeOfTerm {
     bool? isPNP,
     bool? isMajor,
   }) {
-    if (_subjects.length < index) {
-      for (int i = 0; i < index - _subjects.length; i++) {
-        _subjects.add(SubjectInfo());
-      }
-      _updateSubjectsLength(_subjects.length);
-    }
-
-    if (title != null) _subjects[index].updateTitle(title);
-    if (credit != null) _subjects[index].updateCredit(credit);
-    if (gradeType != null) _subjects[index].updateGradeType(gradeType);
-    if (isPNP != null) _subjects[index].updateIsPNP(isPNP);
-    if (isMajor != null) _subjects[index].updateIsMajor(isMajor);
+    if (title != null) currentSubjects[index].updateTitle(title);
+    if (credit != null) currentSubjects[index].updateCredit(credit);
+    if (gradeType != null) currentSubjects[index].updateGradeType(gradeType);
+    if (isPNP != null) currentSubjects[index].updateIsPNP(isPNP);
+    if (isMajor != null) currentSubjects[index].updateIsMajor(isMajor);
 
     if (credit != null ||
         gradeType != null ||
@@ -189,11 +231,11 @@ class GradeOfTerm {
   }
 
   void setDefault(int index) {
-    _subjects[index].updateTitle("");
-    _subjects[index].updateCredit(0);
-    _subjects[index].updateGradeType(GradeType.ap);
-    _subjects[index].updateIsMajor(false);
-    _subjects[index].updateIsPNP(false);
+    currentSubjects[index].updateTitle("");
+    currentSubjects[index].updateCredit(0);
+    currentSubjects[index].updateGradeType(GradeType.ap);
+    currentSubjects[index].updateIsMajor(false);
+    currentSubjects[index].updateIsPNP(false);
     updateGrades();
   }
 
@@ -212,9 +254,9 @@ class GradeOfTerm {
       _gradeAmounts[i].close();
     }
 
-    for (int i = 0; i < _subjects.length; i++) {
-      _subjects[i].dispose();
+    for (int i = 0; i < currentSubjects.length; i++) {
+      currentSubjects[i].dispose();
     }
-    _subjectsLength.close();
+    _subjects.close();
   }
 }

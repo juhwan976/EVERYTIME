@@ -1,3 +1,6 @@
+import 'dart:developer';
+
+import 'package:everytime/bloc/everytime_user_bloc.dart';
 import 'package:flutter/material.dart';
 
 import 'package:everytime/ui/alarm_page.dart';
@@ -19,6 +22,12 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      builder: (context, child) => MediaQuery(
+        data: MediaQuery.of(context).copyWith(
+          textScaleFactor: 0.8235294117647058,
+        ),
+        child: child!,
+      ),
       title: 'Everytime Clone',
       theme: ThemeData(
         brightness: Brightness.light,
@@ -44,6 +53,7 @@ class MyApp extends StatelessWidget {
         secondaryHeaderColor: Colors.white54,
         cardColor: const Color.fromRGBO(26, 26, 26, 1),
         focusColor: const Color.fromRGBO(203, 93, 72, 1),
+        textTheme: TextTheme(),
       ),
       themeMode: ThemeMode.system,
       home: const MainPage(),
@@ -58,7 +68,7 @@ class MainPage extends StatefulWidget {
   State<MainPage> createState() => _MainPageState();
 }
 
-class _MainPageState extends State<MainPage> {
+class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
   final _pageController = PageController(initialPage: 0);
 
   final _homeScrollController = ScrollController();
@@ -74,10 +84,24 @@ class _MainPageState extends State<MainPage> {
   ];
 
   final _mainBloc = MainBloc();
+  final _userBloc = EverytimeUserBloc();
+
+  @override
+  void initState() {
+    super.initState();
+
+    WidgetsBinding.instance.addObserver(this);
+
+    _userBloc.updateIsDark(
+        WidgetsBinding.instance.window.platformBrightness == Brightness.dark);
+    _userBloc.initGradeCalTest();
+  }
 
   @override
   dispose() {
     super.dispose();
+
+    WidgetsBinding.instance.removeObserver(this);
 
     _pageController.dispose();
 
@@ -86,6 +110,26 @@ class _MainPageState extends State<MainPage> {
     _campusPickScrollController.dispose();
 
     _mainBloc.dispose();
+    _userBloc.dispose();
+  }
+
+  @override
+  didChangePlatformBrightness() {
+    super.didChangePlatformBrightness();
+
+    if (WidgetsBinding.instance.window.platformBrightness == Brightness.dark) {
+      if (primaryFocus?.hasFocus ?? false) {
+        primaryFocus?.unfocus();
+        _userBloc.updateIsShowingKeyboard(false);
+      }
+      _userBloc.updateIsDark(true);
+    } else {
+      if (primaryFocus?.hasFocus ?? false) {
+        primaryFocus?.unfocus();
+        _userBloc.updateIsShowingKeyboard(false);
+      }
+      _userBloc.updateIsDark(false);
+    }
   }
 
   @override
@@ -96,6 +140,7 @@ class _MainPageState extends State<MainPage> {
       ),
       TimeTablePage(
         scrollController: _timeTableScrollController,
+        userBloc: _userBloc,
       ),
       BoardPage(),
       AlarmPage(),

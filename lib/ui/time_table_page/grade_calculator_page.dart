@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:developer';
+
 import 'package:everytime/bloc/everytime_user_bloc.dart';
 import 'package:everytime/bloc/grade_calculator_bloc.dart';
 import 'package:everytime/component/custom_container.dart';
@@ -7,6 +10,7 @@ import 'package:everytime/model/bar_chart_data.dart';
 import 'package:everytime/model/grade_type.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:positioned_tap_detector_2/positioned_tap_detector_2.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 
 class GradeCalculatorPage extends StatefulWidget {
@@ -22,10 +26,13 @@ class GradeCalculatorPage extends StatefulWidget {
 }
 
 class _GradeCalculatorPageState extends State<GradeCalculatorPage> {
-  final _termController = ScrollController();
+  final _pageScrollController = ScrollController();
+  final _termScrollController = ScrollController();
   final _targetCreditController = TextEditingController();
 
   final _gradeCalculatorBloc = GradeCalculatorBloc();
+
+  final _selectGradeSheetHeight = appHeight * 0.4;
 
   final List<Color> _barChartColorData = [
     const Color.fromRGBO(220, 130, 105, 1),
@@ -35,55 +42,103 @@ class _GradeCalculatorPageState extends State<GradeCalculatorPage> {
     const Color.fromRGBO(120, 143, 216, 1),
   ];
 
+  void _showKeyboardAction() {
+    widget.userBloc.updateIsShowingKeyboard(true);
+  }
+
+  void _hideKeyboardAction() {
+    widget.userBloc.updateIsShowingKeyboard(false);
+  }
+
   void _buildResetDataDialog(int currentTermIndex) {
     showCupertinoDialog(
       context: context,
       builder: (dialogContext) {
-        return Theme(
-          data: ThemeData(),
-          child: CupertinoAlertDialog(
-            title: Text(
-                '${widget.userBloc.getTerm(currentTermIndex).term} 정보를\n초기화하시겠습니까?'),
-            actions: [
-              CupertinoButton(
-                child: const Text('아니오'),
-                onPressed: () {
-                  Navigator.pop(dialogContext);
-                },
-              ),
-              CupertinoButton(
-                child: const Text('예'),
-                onPressed: () {
-                  for (int i = 0;
-                      i <
+        return StatefulBuilder(builder: (statefulContext, _) {
+          return StreamBuilder(
+            stream: widget.userBloc.isDark,
+            builder: (isDarkContext, isDarkSnapshot) {
+              if (isDarkSnapshot.hasData) {
+                return Theme(
+                  data: isDarkSnapshot.data! == true
+                      ? ThemeData.dark()
+                      : ThemeData.light(),
+                  child: CupertinoAlertDialog(
+                    title: Text(
+                        '${widget.userBloc.getTerm(currentTermIndex).term} 정보를\n초기화하시겠습니까?'),
+                    actions: [
+                      CupertinoButton(
+                        child: const Text('아니오'),
+                        onPressed: () {
+                          Navigator.pop(dialogContext);
+                        },
+                      ),
+                      CupertinoButton(
+                        child: const Text('예'),
+                        onPressed: () {
                           widget.userBloc
                               .getTerm(currentTermIndex)
-                              .currentSubjectLength;
-                      i++) {
-                    widget.userBloc.getTerm(currentTermIndex).setDefault(i);
-                  }
-                  widget.userBloc.updateData();
-                  setState(() {});
-                  Navigator.pop(dialogContext);
-                },
-              ),
-            ],
-          ),
-        );
+                              .removeAdditionalSubjects();
+                          for (int i = 0;
+                              i <
+                                  widget.userBloc
+                                      .getTerm(currentTermIndex)
+                                      .currentSubjects
+                                      .length;
+                              i++) {
+                            widget.userBloc
+                                .getTerm(currentTermIndex)
+                                .setDefault(i);
+                          }
+                          widget.userBloc.updateData();
+                          // TextField 때문에 여기서만 setState 사용
+                          setState(() {});
+                          Navigator.pop(dialogContext);
+                        },
+                      ),
+                    ],
+                  ),
+                );
+              }
+
+              return const SizedBox.shrink();
+            },
+          );
+        });
       },
     );
   }
 
-  void _buildSelectGradeSheet(
-      int currentTermIndex, int currentIndex, GradeType currentGradeType) {
+  void _buildSelectGradeSheet(int currentTermIndex, int currentIndex,
+      GradeType currentGradeType, TapPosition position) {
+    _gradeCalculatorBloc.updateIsShowingSelectGrade(true);
+    widget.userBloc.updateIsShowingKeyboard(false);
+
+    if (position.global.dy >= (appHeight - _selectGradeSheetHeight)) {
+      Future.delayed(
+        const Duration(milliseconds: 350),
+        () {
+          _pageScrollController.animateTo(
+              (position.global.dy -
+                  (appHeight - _selectGradeSheetHeight) +
+                  _pageScrollController.offset),
+              duration: const Duration(milliseconds: 200),
+              curve: Curves.linear);
+        },
+      );
+    }
+
     showModalBottomSheet(
-      isDismissible: false,
+      elevation: 0,
+      barrierColor: Colors.transparent,
+      isDismissible: true,
+      enableDrag: false,
       context: context,
       builder: (popupContext) {
         int selected = GradeType.getIndex(currentGradeType);
         return Container(
           color: Theme.of(context).backgroundColor,
-          height: appHeight * 0.4,
+          height: _selectGradeSheetHeight,
           child: Column(
             children: [
               Row(
@@ -123,6 +178,7 @@ class _GradeCalculatorPageState extends State<GradeCalculatorPage> {
                                     : null,
                           );
                       widget.userBloc.updateData();
+
                       Navigator.pop(popupContext);
                     },
                   ),
@@ -155,7 +211,10 @@ class _GradeCalculatorPageState extends State<GradeCalculatorPage> {
           ),
         );
       },
-    );
+    ).whenComplete(() {
+      _gradeCalculatorBloc.updateIsShowingSelectGrade(false);
+      _gradeCalculatorBloc.updateCurrentSelectingIndex(null);
+    });
   }
 
   Widget _buildEditSubjectsIndexRemain(BuildContext context,
@@ -174,37 +233,46 @@ class _GradeCalculatorPageState extends State<GradeCalculatorPage> {
             color: Theme.of(context).cardColor,
           ),
           child: Center(
-            child: Container(
-              alignment: Alignment.centerLeft,
-              padding: EdgeInsets.only(
-                left: appWidth * 0.04,
-                right: appWidth * 0.04,
-              ),
-              child: CupertinoTextField(
-                controller: TextEditingController(
-                    text: widget.userBloc
-                        .getTerm(currentTermIndex)
-                        .getSubject(currentIndex - 1)
-                        .currentTitle),
-                padding: EdgeInsets.zero,
-                decoration: const BoxDecoration(),
-                style: TextStyle(
-                  fontSize: 17,
-                  color: Theme.of(context).highlightColor,
-                ),
-                textInputAction: TextInputAction.done,
-                onChanged: (value) {
-                  widget.userBloc
-                      .getTerm(currentTermIndex)
-                      .updateSubject(currentIndex - 1, title: value);
-                },
-                onSubmitted: (value) {
-                  widget.userBloc
-                      .getTerm(currentTermIndex)
-                      .updateSubject(currentIndex - 1, title: value);
-                  widget.userBloc.updateData();
-                },
-              ),
+            child: StreamBuilder(
+              stream: widget.userBloc.getTerm(currentTermIndex).subjects,
+              builder: (_, subjectsSnapshot) {
+                if (subjectsSnapshot.hasData) {
+                  return Container(
+                    alignment: Alignment.centerLeft,
+                    padding: EdgeInsets.only(
+                      left: appWidth * 0.04,
+                      right: appWidth * 0.04,
+                    ),
+                    child: CupertinoTextField(
+                      controller: TextEditingController(
+                        text: subjectsSnapshot
+                            .data![currentIndex - 1].currentTitle,
+                      ),
+                      padding: EdgeInsets.zero,
+                      decoration: const BoxDecoration(),
+                      style: TextStyle(
+                        fontSize: 17,
+                        color: Theme.of(context).highlightColor,
+                      ),
+                      textInputAction: TextInputAction.done,
+                      onChanged: (value) {
+                        widget.userBloc
+                            .getTerm(currentTermIndex)
+                            .updateSubject(currentIndex - 1, title: value);
+                      },
+                      onSubmitted: (value) {
+                        widget.userBloc
+                            .getTerm(currentTermIndex)
+                            .updateSubject(currentIndex - 1, title: value);
+                        widget.userBloc.updateData();
+                      },
+                      onTap: _showKeyboardAction,
+                    ),
+                  );
+                }
+
+                return const SizedBox.shrink();
+              },
             ),
           ),
         ),
@@ -220,40 +288,47 @@ class _GradeCalculatorPageState extends State<GradeCalculatorPage> {
             color: Theme.of(context).cardColor,
           ),
           child: Center(
-            child: CupertinoTextField(
-              // focusNode: _gradeFocusNode,
-              controller: TextEditingController(
-                  text: widget.userBloc
-                      .getTerm(currentTermIndex)
-                      .getSubject(currentIndex - 1)
-                      .currentCredit
-                      .toString()),
-              textAlign: TextAlign.center,
-              keyboardType: TextInputType.number,
-              padding: EdgeInsets.zero,
-              decoration: const BoxDecoration(),
-              style: TextStyle(
-                fontSize: 17,
-                color: Theme.of(context).highlightColor,
-              ),
-              onChanged: (value) {
-                widget.userBloc.getTerm(currentTermIndex).updateSubject(
-                    currentIndex - 1,
-                    credit: int.parse(value.isEmpty ? '0' : value));
-                widget.userBloc.updateData();
-              },
-              onSubmitted: (value) {
-                widget.userBloc.getTerm(currentTermIndex).updateSubject(
-                    currentIndex - 1,
-                    credit: int.parse(value.isEmpty ? '0' : value));
-                widget.userBloc.updateData();
+            child: StreamBuilder(
+              stream: widget.userBloc.getTerm(currentTermIndex).subjects,
+              builder: (_, subjectsSnapshot) {
+                if (subjectsSnapshot.hasData) {
+                  return CupertinoTextField(
+                    controller: TextEditingController(
+                      text: subjectsSnapshot
+                          .data![currentIndex - 1].currentCredit
+                          .toString(),
+                    ),
+                    textAlign: TextAlign.center,
+                    keyboardType: TextInputType.number,
+                    padding: EdgeInsets.zero,
+                    decoration: const BoxDecoration(),
+                    style: TextStyle(
+                      fontSize: 17,
+                      color: Theme.of(context).highlightColor,
+                    ),
+                    onChanged: (value) {
+                      widget.userBloc.getTerm(currentTermIndex).updateSubject(
+                          currentIndex - 1,
+                          credit: int.parse(value.isEmpty ? '0' : value));
+                      widget.userBloc.updateData();
+                    },
+                    onSubmitted: (value) {
+                      widget.userBloc.getTerm(currentTermIndex).updateSubject(
+                          currentIndex - 1,
+                          credit: int.parse(value.isEmpty ? '0' : value));
+                      widget.userBloc.updateData();
+                    },
+                    onTap: _showKeyboardAction,
+                  );
+                }
+
+                return const SizedBox.shrink();
               },
             ),
           ),
         ),
         //성적
         Container(
-          width: appWidth * 0.16,
           decoration: BoxDecoration(
             border: Border(
               right: BorderSide(
@@ -261,65 +336,112 @@ class _GradeCalculatorPageState extends State<GradeCalculatorPage> {
               ),
             ),
           ),
-          child: Center(
-            child: StreamBuilder(
-                stream: widget.userBloc
-                    .getTerm(currentTermIndex)
-                    .getSubject(currentIndex - 1)
-                    .gradeType,
-                builder: (gradeTypeContext, gradeTypeSnapshot) {
-                  if (gradeTypeSnapshot.hasData) {
-                    return MaterialButton(
-                      highlightColor: Colors.transparent,
-                      splashColor: Colors.transparent,
-                      child: Text(
-                        gradeTypeSnapshot.data!.data,
-                      ),
-                      onPressed: () async {
-                        if (FocusScope.of(context).hasFocus) {
-                          //log('has Focus');
-                          FocusScope.of(context).unfocus();
-                          // await keyboard animation
-                          await Future.delayed(
-                              const Duration(milliseconds: 350));
+          child: StreamBuilder(
+            stream: widget.userBloc.getTerm(currentTermIndex).subjects,
+            builder: (_, subjectsSnapshot) {
+              if (subjectsSnapshot.hasData) {
+                return StreamBuilder(
+                    stream: subjectsSnapshot.data![currentIndex - 1].gradeType,
+                    builder: (_, gradeTypeSnapshot) {
+                      if (gradeTypeSnapshot.hasData) {
+                        if (gradeTypeSnapshot.hasData) {
+                          return PositionedTapDetector2(
+                            child: Container(
+                              width: appWidth * 0.16,
+                              height: appHeight * 0.0520625,
+                              alignment: Alignment.center,
+                              color: Theme.of(context).scaffoldBackgroundColor,
+                              child: StreamBuilder(
+                                stream:
+                                    _gradeCalculatorBloc.currentSelectingIndex,
+                                builder: (currentSelectingIndexContext,
+                                    currentSelectingIndexSnapshot) {
+                                  return Text(
+                                    gradeTypeSnapshot.data!.data,
+                                    style:
+                                        (currentSelectingIndexSnapshot.data !=
+                                                null)
+                                            ? (currentSelectingIndexSnapshot
+                                                        .data! ==
+                                                    currentIndex
+                                                ? TextStyle(
+                                                    fontSize: 17,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Theme.of(context)
+                                                        .focusColor,
+                                                  )
+                                                : const TextStyle(
+                                                    fontSize: 17,
+                                                  ))
+                                            : const TextStyle(
+                                                fontSize: 17,
+                                              ),
+                                  );
+                                },
+                              ),
+                            ),
+                            onTap: (position) async {
+                              if (FocusScope.of(context).hasFocus) {
+                                //log('has Focus');
+                                FocusScope.of(context).unfocus();
+                                // await keyboard animation
+                                await Future.delayed(
+                                    const Duration(milliseconds: 350));
+                              }
+                              _buildSelectGradeSheet(
+                                  currentTermIndex,
+                                  currentIndex,
+                                  gradeTypeSnapshot.data!,
+                                  position);
+                              _gradeCalculatorBloc
+                                  .updateCurrentSelectingIndex(currentIndex);
+                            },
+                          );
                         }
-                        _buildSelectGradeSheet(currentTermIndex, currentIndex,
-                            gradeTypeSnapshot.data!);
-                      },
-                    );
-                  }
+                      }
 
-                  return const SizedBox.shrink();
-                }),
+                      return const SizedBox.shrink();
+                    });
+              }
+
+              return const SizedBox.shrink();
+            },
           ),
         ),
         //전공
         Expanded(
           child: Center(
             child: StreamBuilder(
-              stream: widget.userBloc
-                  .getTerm(currentTermIndex)
-                  .getSubject(currentIndex - 1)
-                  .isMajor,
-              builder: (isMajorContext, isMajorSnapshot) {
-                if (isMajorSnapshot.hasData) {
-                  return Checkbox(
-                    value: isMajorSnapshot.data!,
-                    activeColor: Theme.of(context).focusColor,
-                    checkColor: Theme.of(context).scaffoldBackgroundColor,
-                    shape: RoundedRectangleBorder(
-                      side: BorderSide(
-                        width: 0.5,
-                        color: Theme.of(context).dividerColor,
-                      ),
-                      borderRadius: BorderRadius.circular(5),
-                    ),
-                    onChanged: (newValue) {
-                      widget.userBloc
-                          .getTerm(currentTermIndex)
-                          .updateSubject(currentIndex - 1, isMajor: newValue);
+              stream: widget.userBloc.getTerm(currentTermIndex).subjects,
+              builder: (_, subjectsSnapshot) {
+                if (subjectsSnapshot.hasData) {
+                  return StreamBuilder(
+                    stream: subjectsSnapshot.data![currentIndex - 1].isMajor,
+                    builder: (_, isMajorSnapshot) {
+                      if (isMajorSnapshot.hasData) {
+                        return Checkbox(
+                          value: isMajorSnapshot.data!,
+                          activeColor: Theme.of(context).focusColor,
+                          checkColor: Theme.of(context).scaffoldBackgroundColor,
+                          shape: RoundedRectangleBorder(
+                            side: BorderSide(
+                              width: 0.5,
+                              color: Theme.of(context).dividerColor,
+                            ),
+                            borderRadius: BorderRadius.circular(5),
+                          ),
+                          onChanged: (newValue) {
+                            widget.userBloc
+                                .getTerm(currentTermIndex)
+                                .updateSubject(currentIndex - 1,
+                                    isMajor: newValue);
 
-                      widget.userBloc.updateData();
+                            widget.userBloc.updateData();
+                          },
+                        );
+                      }
+
+                      return const SizedBox.shrink();
                     },
                   );
                 }
@@ -356,7 +478,9 @@ class _GradeCalculatorPageState extends State<GradeCalculatorPage> {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              onPressed: () {},
+              onPressed: () {
+                widget.userBloc.getTerm(currentTermIndex).addSubject();
+              },
             ),
           ),
           SizedBox(width: appWidth * 0.04),
@@ -375,7 +499,6 @@ class _GradeCalculatorPageState extends State<GradeCalculatorPage> {
                 ),
               ),
               onPressed: () {
-                //TODO: 이거 나온상태에서 시스템 색 바꿔도 작동하도록 하자.
                 _buildResetDataDialog(currentTermIndex);
               },
             ),
@@ -483,45 +606,65 @@ class _GradeCalculatorPageState extends State<GradeCalculatorPage> {
 
   void _buildEditTargetCreditDialog(
       BuildContext context, int currentTargetCredit) {
-    //TODO: 이거 나온 상태에서 시스템 색 바꿀 경우 적용되도록 하기.
     _targetCreditController.text = currentTargetCredit.toString();
     showCupertinoDialog(
       context: context,
       builder: (dialogContext) {
-        return Theme(
-          data: ThemeData.light(),
-          child: CupertinoAlertDialog(
-            title: const Text('졸업 학점 설정'),
-            content: Container(
-              margin: EdgeInsets.only(
-                top: appHeight * 0.025,
-              ),
-              child: CupertinoTextField(
-                controller: _targetCreditController,
-                keyboardType: TextInputType.number,
-                textInputAction: TextInputAction.done,
-              ),
-            ),
-            actions: [
-              CupertinoButton(
-                padding: EdgeInsets.zero,
-                child: const Text('취소'),
-                onPressed: () {
-                  Navigator.pop(dialogContext);
-                },
-              ),
-              CupertinoButton(
-                padding: EdgeInsets.zero,
-                child: const Text('저장'),
-                onPressed: () {
-                  widget.userBloc.updateTargetCredit(
-                      int.parse(_targetCreditController.text));
-                  _targetCreditController.clear();
-                  Navigator.pop(dialogContext);
-                },
-              ),
-            ],
-          ),
+        return StatefulBuilder(
+          builder: (statefulContext, _) {
+            return StreamBuilder(
+              stream: widget.userBloc.isDark,
+              builder: (__, isDarkSnapshot) {
+                if (isDarkSnapshot.hasData) {
+                  return Theme(
+                    data: isDarkSnapshot.data!
+                        ? ThemeData.dark()
+                        : ThemeData.light(),
+                    child: CupertinoAlertDialog(
+                      title: const Text('졸업 학점 설정'),
+                      content: Container(
+                        margin: EdgeInsets.only(
+                          top: appHeight * 0.025,
+                        ),
+                        child: CupertinoTextField(
+                          controller: _targetCreditController,
+                          keyboardType: TextInputType.number,
+                          textInputAction: TextInputAction.done,
+                          style: TextStyle(
+                            color: isDarkSnapshot.data!
+                                ? Colors.white
+                                : Colors.black,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                      actions: [
+                        CupertinoButton(
+                          padding: EdgeInsets.zero,
+                          child: const Text('취소'),
+                          onPressed: () {
+                            Navigator.pop(dialogContext);
+                          },
+                        ),
+                        CupertinoButton(
+                          padding: EdgeInsets.zero,
+                          child: const Text('저장'),
+                          onPressed: () {
+                            widget.userBloc.updateTargetCredit(
+                                int.parse(_targetCreditController.text));
+                            _targetCreditController.clear();
+                            Navigator.pop(dialogContext);
+                          },
+                        ),
+                      ],
+                    ),
+                  );
+                }
+
+                return const SizedBox.shrink();
+              },
+            );
+          },
         );
       },
     );
@@ -536,7 +679,8 @@ class _GradeCalculatorPageState extends State<GradeCalculatorPage> {
   dispose() {
     super.dispose();
 
-    _termController.dispose();
+    _pageScrollController.dispose();
+    _termScrollController.dispose();
     _targetCreditController.dispose();
     _gradeCalculatorBloc.dispose();
   }
@@ -588,7 +732,7 @@ class _GradeCalculatorPageState extends State<GradeCalculatorPage> {
                   builder: (streamContext, snapshot) {
                     if (snapshot.hasData) {
                       return ListView.builder(
-                        controller: _termController,
+                        controller: _termScrollController,
                         scrollDirection: Axis.horizontal,
                         padding: EdgeInsets.only(
                           left: appWidth * 0.04,
@@ -636,16 +780,23 @@ class _GradeCalculatorPageState extends State<GradeCalculatorPage> {
                             onPressed: () {
                               if (FocusScope.of(context).hasFocus) {
                                 FocusScope.of(context).unfocus();
+                                _hideKeyboardAction();
                               }
+
+                              widget.userBloc
+                                  .getTerm(snapshot.data!)
+                                  .removeEmptySubjects();
                               _gradeCalculatorBloc.updateCurrentTerm(index);
 
                               //TODO: 나중에 글자 수가 다른 학기가 추가된다면 수정해야 할 수도 있다.
-                              if (_termController.position.maxScrollExtent <
+                              if (_termScrollController
+                                      .position.maxScrollExtent <
                                   appWidth * 0.205 * index) {
-                                _termController.jumpTo(
-                                    _termController.position.maxScrollExtent);
+                                _termScrollController.jumpTo(
+                                    _termScrollController
+                                        .position.maxScrollExtent);
                               } else {
-                                _termController
+                                _termScrollController
                                     .jumpTo(appWidth * 0.205 * index);
                               }
                             },
@@ -660,6 +811,7 @@ class _GradeCalculatorPageState extends State<GradeCalculatorPage> {
             Expanded(
               child: ListView(
                 physics: const ClampingScrollPhysics(),
+                controller: _pageScrollController,
                 children: [
                   CustomContainer(
                     height: appHeight * 0.538,
@@ -1149,6 +1301,7 @@ class _GradeCalculatorPageState extends State<GradeCalculatorPage> {
                             ],
                           ),
                         ),
+                        //TODO: 시간표 불러오기 기능 만들기
                         Container(
                           margin: EdgeInsets.only(
                             right: appWidth * 0.05,
@@ -1159,58 +1312,34 @@ class _GradeCalculatorPageState extends State<GradeCalculatorPage> {
                   ),
                   StreamBuilder(
                     stream: _gradeCalculatorBloc.currentTerm,
-                    builder:
-                        (currentTermIndexContext, currentTermIndexSnapshot) {
+                    builder: (_, currentTermIndexSnapshot) {
                       if (currentTermIndexSnapshot.hasData) {
                         return StreamBuilder(
                           stream: widget.userBloc
                               .getTerm(currentTermIndexSnapshot.data!)
-                              .subjectsLength,
-                          builder:
-                              (subjectsLengthContext, subjectsLengthSnapshot) {
-                            if (subjectsLengthSnapshot.hasData) {
-                              //TODO: 더 입력하기 만들 때 같이 손보자.
-                              // if (_textEditingControllers.length <
-                              //     subjectsLengthSnapshot.data!) {
-                              //   for (int i = 0;
-                              //       i <
-                              //           (subjectsLengthSnapshot.data! -
-                              //               _textEditingControllers.length);
-                              //       i++) {
-                              //     _textEditingControllers
-                              //         .add(TextEditingController());
-                              //   }
-                              // } else if (_textEditingControllers.length >
-                              //     subjectsLengthSnapshot.data!) {
-                              //   for (int i = 0;
-                              //       i <
-                              //           (_textEditingControllers.length -
-                              //               subjectsLengthSnapshot.data!);
-                              //       i++) {
-                              //     _textEditingControllers.last.dispose();
-                              //     _textEditingControllers.removeLast();
-                              //   }
-                              // }
+                              .subjects,
+                          builder: (_, subjectsSnapshot) {
+                            if (subjectsSnapshot.hasData) {
                               return SizedBox(
-                                height: (subjectsLengthSnapshot.data! + 2) *
+                                height: (subjectsSnapshot.data!.length + 2) *
                                     appHeight *
                                     0.05313,
                                 child: CustomContainer(
-                                  height: (subjectsLengthSnapshot.data! + 2) *
+                                  height: (subjectsSnapshot.data!.length + 2) *
                                       appHeight *
                                       0.05313,
                                   usePadding: false,
                                   child: Column(
                                     children: List.generate(
-                                      subjectsLengthSnapshot.data! + 2,
+                                      subjectsSnapshot.data!.length + 2,
                                       (index) {
                                         return Container(
                                           height: appHeight * 0.0520625,
                                           decoration: BoxDecoration(
                                             border: Border(
                                               bottom: (index + 1 ==
-                                                      subjectsLengthSnapshot
-                                                              .data! +
+                                                      subjectsSnapshot
+                                                              .data!.length +
                                                           2)
                                                   ? BorderSide.none
                                                   : BorderSide(
@@ -1222,7 +1351,7 @@ class _GradeCalculatorPageState extends State<GradeCalculatorPage> {
                                           child: _buildEditSubjects(
                                             context,
                                             currentTermIndexSnapshot.data!,
-                                            subjectsLengthSnapshot.data!,
+                                            subjectsSnapshot.data!.length,
                                             index,
                                           ),
                                         );
@@ -1243,6 +1372,55 @@ class _GradeCalculatorPageState extends State<GradeCalculatorPage> {
                   ),
                 ],
               ),
+            ),
+            StreamBuilder(
+              stream: _gradeCalculatorBloc.isShowingSelectGrade,
+              builder:
+                  (isShowingSelecteGradeContext, isShowingSelectGradeSnapshot) {
+                if (isShowingSelectGradeSnapshot.hasData) {
+                  return AnimatedContainer(
+                    duration: const Duration(milliseconds: 300),
+                    height: isShowingSelectGradeSnapshot.data!
+                        ? _selectGradeSheetHeight - paddingBottom
+                        : 0,
+                  );
+                }
+
+                return const SizedBox.shrink();
+              },
+            ),
+            StreamBuilder(
+              stream: widget.userBloc.isShowingKeyboard,
+              builder: (_, isShowingKeyboardSnapshot) {
+                if (isShowingKeyboardSnapshot.hasData) {
+                  return Visibility(
+                    visible: isShowingKeyboardSnapshot.data!,
+                    child: Container(
+                      color: Theme.of(context).backgroundColor,
+                      alignment: Alignment.centerRight,
+                      height: isShowingKeyboardSnapshot.data!
+                          ? paddingBottom + appHeight * 0.015
+                          : 0,
+                      child: CupertinoButton(
+                        child: const Text(
+                          '완료',
+                          style: TextStyle(
+                            fontSize: 17,
+                          ),
+                        ),
+                        onPressed: () {
+                          _hideKeyboardAction();
+                          if (primaryFocus?.hasFocus ?? false) {
+                            primaryFocus?.unfocus();
+                          }
+                        },
+                      ),
+                    ),
+                  );
+                }
+
+                return const SizedBox.shrink();
+              },
             ),
           ],
         ),

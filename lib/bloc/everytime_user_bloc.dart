@@ -1,6 +1,3 @@
-import 'dart:collection';
-import 'dart:developer';
-
 import 'package:everytime/model/bar_chart_data.dart';
 import 'package:everytime/model/grade_of_term.dart';
 import 'package:everytime/model/grade_type.dart';
@@ -10,6 +7,7 @@ import 'package:rxdart/subjects.dart';
 class EverytimeUserBloc {
   // 유저 이름
   final _userName = BehaviorSubject<String>();
+  //****************************************************************************************************
   // 전체 평점
   final _totalGradeAve = BehaviorSubject<double>.seeded(0.0);
   // 전공 평점
@@ -171,7 +169,7 @@ class EverytimeUserBloc {
     _percentData.sink.add(tempList);
   }
 
-  void initTest() {
+  void initGradeCalTest() {
     updateTargetCredit(140);
 
     getTerm(0).updateSubject(
@@ -221,6 +219,17 @@ class EverytimeUserBloc {
     updateData();
   }
 
+  //****************************************************************************************************
+  final _isDark = BehaviorSubject<bool>.seeded(false);
+  final _isShowingKeyboard = BehaviorSubject<bool>.seeded(false);
+
+  Stream<bool> get isDark => _isDark.stream;
+  Function(bool) get updateIsDark => _isDark.sink.add;
+
+  Stream<bool> get isShowingKeyboard => _isShowingKeyboard.stream;
+  Function(bool) get updateIsShowingKeyboard => _isShowingKeyboard.sink.add;
+
+  //****************************************************************************************************
   void dispose() {
     _userName.close();
 
@@ -237,5 +246,8 @@ class EverytimeUserBloc {
 
     _aveData.close();
     _percentData.close();
+
+    _isDark.close();
+    _isShowingKeyboard.close();
   }
 }
