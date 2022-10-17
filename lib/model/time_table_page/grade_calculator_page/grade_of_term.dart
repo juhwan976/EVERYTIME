@@ -1,7 +1,7 @@
 import 'dart:developer';
 
-import 'package:everytime/model/grade_type.dart';
-import 'package:everytime/model/subject_info.dart';
+import 'package:everytime/model/time_table_page/grade_calculator_page/grade_type.dart';
+import 'package:everytime/model/time_table_page/grade_calculator_page/subject_info.dart';
 import 'package:rxdart/subjects.dart';
 
 class GradeOfTerm {

@@ -6,12 +6,16 @@ class EmptyContent extends StatelessWidget {
     Key? key,
     required this.icon,
     required this.title,
-    required this.content,
+    required this.contentIsString,
+    this.contentString,
+    this.content,
   }) : super(key: key);
 
   final IconData icon;
   final String title;
-  final String content;
+  final bool contentIsString;
+  final String? contentString;
+  final Widget? content;
 
   @override
   Widget build(BuildContext context) {
@@ -35,14 +39,16 @@ class EmptyContent extends StatelessWidget {
           SizedBox(
             height: appHeight * 0.005,
           ),
-          Text(
-            content,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: Theme.of(context).hintColor,
-              fontSize: 14.5,
-            ),
-          ),
+          (contentIsString)
+              ? Text(
+                  contentString ?? '',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Theme.of(context).hintColor,
+                    fontSize: 14.5,
+                  ),
+                )
+              : content ?? const SizedBox.shrink(),
         ],
       ),
     );

@@ -27,6 +27,7 @@ class CustomAppBar extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
+            width: appWidth * 0.475,
             child: Text(
               title,
               style: const TextStyle(
@@ -34,6 +35,7 @@ class CustomAppBar extends StatelessWidget {
                 fontSize: 27,
                 fontWeight: FontWeight.bold,
               ),
+              overflow: TextOverflow.ellipsis,
             ),
           ),
           Row(

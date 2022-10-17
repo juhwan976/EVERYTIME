@@ -76,11 +76,11 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
   final _campusPickScrollController = ScrollController();
 
   final List<IconData> _bottomNavIcons = const [
-    Icons.home_rounded,
-    Icons.table_chart_rounded,
-    Icons.dashboard_rounded,
-    Icons.notifications_active_rounded,
-    Icons.alternate_email_rounded,
+    Icons.home_outlined,
+    Icons.table_chart_outlined,
+    Icons.dashboard_outlined,
+    Icons.notifications_active_outlined,
+    Icons.alternate_email_outlined,
   ];
 
   final _mainBloc = MainBloc();
@@ -94,6 +94,9 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
 
     _userBloc.updateIsDark(
         WidgetsBinding.instance.window.platformBrightness == Brightness.dark);
+    _userBloc.updateTermString();
+
+    // 이하는 테스트용 구문
     _userBloc.initGradeCalTest();
   }
 
@@ -134,29 +137,37 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    final List<Widget> pageList = [
-      HomePage(
-        scrollController: _homeScrollController,
-      ),
-      TimeTablePage(
-        scrollController: _timeTableScrollController,
-        userBloc: _userBloc,
-      ),
-      BoardPage(),
-      AlarmPage(),
-      CampusPickPage(),
-    ];
-
     return Scaffold(
-      body: PageView(
-        controller: _pageController,
-        physics: const NeverScrollableScrollPhysics(),
-        children: pageList,
+      body: StreamBuilder(
+        stream: _mainBloc.page,
+        builder: (_, pageSnapshot) {
+          if (pageSnapshot.hasData) {
+            return PageView(
+              controller: _pageController,
+              physics: const NeverScrollableScrollPhysics(),
+              children: [
+                HomePage(
+                  scrollController: _homeScrollController,
+                ),
+                TimeTablePage(
+                  scrollController: _timeTableScrollController,
+                  isOnScreen: pageSnapshot.data! == 1,
+                  userBloc: _userBloc,
+                ),
+                BoardPage(),
+                AlarmPage(),
+                CampusPickPage(),
+              ],
+            );
+          }
+
+          return const SizedBox.shrink();
+        },
       ),
       bottomNavigationBar: StreamBuilder(
-        stream: _mainBloc.getPage,
-        builder: (context, AsyncSnapshot<int> snapshot) {
-          if (snapshot.hasData) {
+        stream: _mainBloc.page,
+        builder: (context, AsyncSnapshot<int> pageSnapshot) {
+          if (pageSnapshot.hasData) {
             return Container(
               height: appHeight * 0.11,
               width: appWidth,
@@ -170,11 +181,11 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
                   ),
                   Row(
                     children: List.generate(
-                      pageList.length,
+                      _bottomNavIcons.length,
                       (index) {
                         return SizedBox(
                           height: appHeight * 0.11 - 1,
-                          width: appWidth / pageList.length,
+                          width: appWidth / _bottomNavIcons.length,
                           child: MaterialButton(
                             height: appHeight * 0.11 - 1,
                             padding: EdgeInsets.only(
@@ -184,7 +195,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
                             splashColor: Colors.transparent,
                             child: Icon(
                               _bottomNavIcons.elementAt(index),
-                              color: (snapshot.data as int == index)
+                              color: (pageSnapshot.data as int == index)
                                   ? Theme.of(context).highlightColor
                                   : Theme.of(context).unselectedWidgetColor,
                             ),

@@ -36,7 +36,10 @@ class CustomContainer extends StatelessWidget {
           color: Theme.of(context).dividerColor,
         ),
       ),
-      child: child,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(10),
+        child: child,
+      ),
     );
   }
 }
