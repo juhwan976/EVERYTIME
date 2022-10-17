@@ -6,7 +6,7 @@ class TimeTableChart extends StatelessWidget {
     Key? key,
   }) : super(key: key);
 
-  final List<String> _weekList = ['월', '화', '수', '목', '금'];
+  final List<String> _weekList = ['월', '화', '수', '목', '금', '토'];
   final List<int> _timeList = [9, 10, 11, 12, 1, 2, 3];
 
   Widget _buildTimeTableElement(
@@ -43,8 +43,8 @@ class TimeTableChart extends StatelessWidget {
         );
       } else {
         return Center(
-          child: Text('${currentRowIndex}, ${currentColIndex}'),
-        );
+            // child: Text('${currentRowIndex}, ${currentColIndex}'),
+            );
       }
     }
   }
@@ -85,7 +85,9 @@ class TimeTableChart extends StatelessWidget {
         _weekList.length + 1,
         (rowIndex) {
           return Container(
-            width: (rowIndex == 0) ? appWidth * 0.055 : appWidth * 0.1799,
+            width: (rowIndex == 0)
+                ? appWidth * 0.055
+                : appWidth * 0.8995 / _weekList.length,
             decoration: (rowIndex + 1 == _weekList.length + 1)
                 ? null
                 : BoxDecoration(

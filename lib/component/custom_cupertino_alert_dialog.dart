@@ -11,6 +11,7 @@ class CustomCupertinoAlertDialog extends StatelessWidget {
     this.autoFocus = false,
     this.textEditingController,
     this.keyboardType,
+    this.cursorColorType,
     this.onChanged,
     this.onSubmitted,
     this.content,
@@ -23,6 +24,7 @@ class CustomCupertinoAlertDialog extends StatelessWidget {
   final bool autoFocus;
   final TextEditingController? textEditingController;
   final TextInputType? keyboardType;
+  final CursorColorType? cursorColorType;
   final Function(String)? onChanged;
   final Function(String)? onSubmitted;
   final Widget? content;
@@ -54,6 +56,12 @@ class CustomCupertinoAlertDialog extends StatelessWidget {
                           color: snapshot.data! ? Colors.white : Colors.black,
                           fontSize: 14,
                         ),
+                        cursorColor:
+                            (cursorColorType == CursorColorType.blackNWhite)
+                                ? (snapshot.data! ? Colors.white : Colors.black)
+                                : (cursorColorType == CursorColorType.identity
+                                    ? Theme.of(context).focusColor
+                                    : null),
                         onChanged: onChanged,
                         onSubmitted: onSubmitted,
                       ),
@@ -69,3 +77,5 @@ class CustomCupertinoAlertDialog extends StatelessWidget {
     );
   }
 }
+
+enum CursorColorType { blackNWhite, identity, normal }

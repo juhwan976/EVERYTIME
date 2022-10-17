@@ -146,10 +146,9 @@ class GradeOfTerm {
   void removeAdditionalSubjects() {
     if (currentSubjects.length == DEFAULT_SUBJECTS_LENGTH) return;
     List<SubjectInfo> tempList = currentSubjects;
-    for (int i = 0; i < (tempList.length - DEFAULT_SUBJECTS_LENGTH); i++) {
+    for (int i = tempList.length - DEFAULT_SUBJECTS_LENGTH - 1; i >= 0; i--) {
       tempList.removeLast();
     }
-
     updateSubjects(tempList);
   }
 

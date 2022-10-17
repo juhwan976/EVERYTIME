@@ -4,12 +4,12 @@ import 'package:flutter/material.dart';
 class CustomContainer extends StatelessWidget {
   const CustomContainer({
     Key? key,
-    required this.height,
+    this.height,
     required this.child,
     this.usePadding = true,
   }) : super(key: key);
 
-  final double height;
+  final double? height;
   final Widget child;
   final bool usePadding;
 

@@ -2,6 +2,7 @@ import 'package:everytime/bloc/everytime_user_bloc.dart';
 import 'package:everytime/component/custom_container.dart';
 import 'package:everytime/component/time_table_page/time_table_chart.dart';
 import 'package:everytime/global_variable.dart';
+import 'package:everytime/ui/time_table_page/add_direct_page.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -9,17 +10,37 @@ class AddTimeTablePage extends StatefulWidget {
   const AddTimeTablePage({
     Key? key,
     required this.userBloc,
-    required this.isOnScreen,
   }) : super(key: key);
 
   final EverytimeUserBloc userBloc;
-  final bool isOnScreen;
 
   @override
   State<AddTimeTablePage> createState() => _AddTimeTablePageState();
 }
 
 class _AddTimeTablePageState extends State<AddTimeTablePage> {
+  void _routeAddDirectPage(BuildContext context) {
+    Navigator.of(context).push(
+      PageRouteBuilder(
+        pageBuilder: ((context, animation, secondaryAnimation) =>
+            AddDirectPage(userBloc: widget.userBloc)),
+        transitionsBuilder: ((context, animation, secondaryAnimation, child) {
+          const begin = Offset(0.0, 1.0);
+          const end = Offset.zero;
+          const curve = Curves.ease;
+
+          final tween =
+              Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+
+          return SlideTransition(
+            position: animation.drive(tween),
+            child: child,
+          );
+        }),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -96,7 +117,9 @@ class _AddTimeTablePageState extends State<AddTimeTablePage> {
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          onPressed: () {},
+                          onPressed: () {
+                            _routeAddDirectPage(context);
+                          },
                         ),
                       ),
                     ],

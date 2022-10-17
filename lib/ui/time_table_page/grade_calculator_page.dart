@@ -18,11 +18,9 @@ class GradeCalculatorPage extends StatefulWidget {
   const GradeCalculatorPage({
     Key? key,
     required this.userBloc,
-    required this.isOnScreen,
   }) : super(key: key);
 
   final EverytimeUserBloc userBloc;
-  final bool isOnScreen;
 
   @override
   State<GradeCalculatorPage> createState() => _GradeCalculatorPageState();
@@ -235,6 +233,7 @@ class _GradeCalculatorPageState extends State<GradeCalculatorPage> {
                             .data![currentIndex - 1].currentTitle,
                       ),
                       padding: EdgeInsets.zero,
+                      cursorColor: Theme.of(context).highlightColor,
                       decoration: const BoxDecoration(),
                       style: TextStyle(
                         fontSize: 17,
@@ -287,6 +286,7 @@ class _GradeCalculatorPageState extends State<GradeCalculatorPage> {
                     textAlign: TextAlign.center,
                     keyboardType: TextInputType.number,
                     padding: EdgeInsets.zero,
+                    cursorColor: Theme.of(context).highlightColor,
                     decoration: const BoxDecoration(),
                     style: TextStyle(
                       fontSize: 17,
@@ -619,6 +619,7 @@ class _GradeCalculatorPageState extends State<GradeCalculatorPage> {
           hasTextField: true,
           keyboardType: TextInputType.number,
           textEditingController: _targetCreditController,
+          cursorColorType: CursorColorType.blackNWhite,
           actions: [
             CupertinoButton(
               padding: EdgeInsets.zero,
@@ -639,62 +640,6 @@ class _GradeCalculatorPageState extends State<GradeCalculatorPage> {
             ),
           ],
         );
-        // return StatefulBuilder(
-        //   builder: (statefulContext, _) {
-        //     return StreamBuilder(
-        //       stream: widget.userBloc.isDark,
-        //       builder: (__, isDarkSnapshot) {
-        //         if (isDarkSnapshot.hasData) {
-        //           return Theme(
-        //             data: isDarkSnapshot.data!
-        //                 ? ThemeData.dark()
-        //                 : ThemeData.light(),
-        //             child: CupertinoAlertDialog(
-        //               title: const Text('졸업 학점 설정'),
-        //               content: Container(
-        //                 margin: EdgeInsets.only(
-        //                   top: appHeight * 0.025,
-        //                 ),
-        //                 child: CupertinoTextField(
-        //                   controller: _targetCreditController,
-        //                   keyboardType: TextInputType.number,
-        //                   textInputAction: TextInputAction.done,
-        //                   style: TextStyle(
-        //                     color: isDarkSnapshot.data!
-        //                         ? Colors.white
-        //                         : Colors.black,
-        //                     fontSize: 14,
-        //                   ),
-        //                 ),
-        //               ),
-        //               actions: [
-        //                 CupertinoButton(
-        //                   padding: EdgeInsets.zero,
-        //                   child: const Text('취소'),
-        //                   onPressed: () {
-        //                     Navigator.pop(dialogContext);
-        //                   },
-        //                 ),
-        //                 CupertinoButton(
-        //                   padding: EdgeInsets.zero,
-        //                   child: const Text('저장'),
-        //                   onPressed: () {
-        //                     widget.userBloc.updateTargetCredit(
-        //                         int.parse(_targetCreditController.text));
-        //                     _targetCreditController.clear();
-        //                     Navigator.pop(dialogContext);
-        //                   },
-        //                 ),
-        //               ],
-        //             ),
-        //           );
-        //         }
-
-        //         return const SizedBox.shrink();
-        //       },
-        //     );
-        //   },
-        // );
       },
     );
   }
@@ -718,7 +663,7 @@ class _GradeCalculatorPageState extends State<GradeCalculatorPage> {
   Widget build(BuildContext context) {
     return ScrollsToTop(
       onScrollsToTop: (event) async {
-        if (!widget.isOnScreen) return;
+        // if (!widget.isOnScreen) return;
 
         if (_pageScrollController.hasClients) {
           _pageScrollController.animateTo(

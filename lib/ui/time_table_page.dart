@@ -334,13 +334,12 @@ class _TimeTablePageState extends State<TimeTablePage>
     );
   }
 
-  void _buildAddTimeTablePage(BuildContext context) {
+  void _routeAddTimeTablePage(BuildContext context) {
     Navigator.of(context).push(
       PageRouteBuilder(
         pageBuilder: ((context, animation, secondaryAnimation) =>
             AddTimeTablePage(
               userBloc: widget.userBloc,
-              isOnScreen: widget.isOnScreen,
             )),
         transitionsBuilder: ((context, animation, secondaryAnimation, child) {
           const begin = Offset(0.0, 1.0);
@@ -368,6 +367,7 @@ class _TimeTablePageState extends State<TimeTablePage>
           title: '추가할 친구의 아이디 또는 이메일 주소를 입력해주세요.',
           hasTextField: true,
           autoFocus: true,
+          cursorColorType: CursorColorType.blackNWhite,
           actions: [
             CupertinoButton(
               padding: EdgeInsets.zero,
@@ -464,7 +464,7 @@ class _TimeTablePageState extends State<TimeTablePage>
     );
   }
 
-  void _buildGradeCalculatorPage(BuildContext context) {
+  void _routeGradeCalculatorPage(BuildContext context) {
     // 참고 페이지 : https://flutter-ko.dev/docs/cookbook/animation/page-route-animation
     Navigator.of(context)
         .push(
@@ -472,7 +472,6 @@ class _TimeTablePageState extends State<TimeTablePage>
             pageBuilder: ((context, animation, secondaryAnimation) =>
                 GradeCalculatorPage(
                   userBloc: widget.userBloc,
-                  isOnScreen: widget.isOnScreen,
                 )),
             transitionsBuilder:
                 ((context, animation, secondaryAnimation, child) {
@@ -561,7 +560,7 @@ class _TimeTablePageState extends State<TimeTablePage>
                           child: CustomAppBarButton(
                             icon: Icons.add_box_outlined,
                             onPressed: () {
-                              _buildAddTimeTablePage(context);
+                              _routeAddTimeTablePage(context);
                             },
                           ),
                         ),
@@ -688,7 +687,7 @@ class _TimeTablePageState extends State<TimeTablePage>
                               type: CustomContainerTitleType.button,
                               buttonIcon: Icons.create_outlined,
                               onPressed: () {
-                                _buildGradeCalculatorPage(context);
+                                _routeGradeCalculatorPage(context);
                               },
                             ),
                             Expanded(
