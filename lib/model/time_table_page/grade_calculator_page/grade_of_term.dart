@@ -1,6 +1,4 @@
-import 'dart:developer';
-
-import 'package:everytime/model/time_table_page/grade_calculator_page/grade_type.dart';
+import 'package:everytime/model/enums.dart';
 import 'package:everytime/model/time_table_page/grade_calculator_page/subject_info.dart';
 import 'package:rxdart/subjects.dart';
 
@@ -77,8 +75,7 @@ class GradeOfTerm {
   // subjects배열 길이의 기본값
   // ignore: constant_identifier_names
   static const DEFAULT_SUBJECTS_LENGTH = 10;
-  // subjects배열 길이
-  // final _subjectsLength = BehaviorSubject<int>.seeded(DEFAULT_SUBJECTS_LENGTH);
+
   // 과목 정보들
   // ignore: prefer_final_fields
   final _subjects = BehaviorSubject<List<SubjectInfo>>.seeded([
@@ -105,8 +102,9 @@ class GradeOfTerm {
   // SubjectInfo getCurrentSubject(int index) => _subjects.value[index];
   Stream<List<SubjectInfo>> get subjects => _subjects.stream;
   List<SubjectInfo> get currentSubjects => _subjects.value;
-  void updateSubjects(List<SubjectInfo> newSubjects) =>
-      _subjects.sink.add(newSubjects);
+  void updateSubjects(List<SubjectInfo> newSubjects) {
+    _subjects.sink.add(newSubjects);
+  }
 
   void addSubject() {
     List<SubjectInfo> tempList = currentSubjects;
@@ -124,10 +122,10 @@ class GradeOfTerm {
 
     for (int i = 0; i < (tempList.length - DEFAULT_SUBJECTS_LENGTH); i++) {
       targetSubject = tempList[DEFAULT_SUBJECTS_LENGTH + i];
-      if (targetSubject.currentIsMajor == false &&
-          targetSubject.currentCredit == 0 &&
-          targetSubject.currentTitle.isEmpty &&
-          targetSubject.currentGradeType == GradeType.ap) {
+      if (targetSubject.isMajor == false &&
+          targetSubject.credit == 0 &&
+          targetSubject.title.isEmpty &&
+          targetSubject.gradeType == GradeType.ap) {
         removeIndexes.add(DEFAULT_SUBJECTS_LENGTH + i);
       }
     }
@@ -140,7 +138,6 @@ class GradeOfTerm {
       tempList.removeAt(removeIndexes[i]);
     }
     updateSubjects(tempList);
-    // _updateSubjectsLength(_subjects.length);
   }
 
   void removeAdditionalSubjects() {
@@ -169,10 +166,10 @@ class GradeOfTerm {
     bool isPNP = false;
 
     for (int i = 0; i < currentSubjects.length; i++) {
-      credit = currentSubjects[i].currentCredit;
-      gradeType = currentSubjects[i].currentGradeType;
-      isMajor = currentSubjects[i].currentIsMajor;
-      isPNP = currentSubjects[i].currentIsPNP;
+      credit = currentSubjects[i].credit;
+      gradeType = currentSubjects[i].gradeType;
+      isMajor = currentSubjects[i].isMajor;
+      isPNP = currentSubjects[i].isPNP;
 
       if (credit != 0) {
         if (gradeType.grade > 0) {
@@ -215,26 +212,26 @@ class GradeOfTerm {
     bool? isPNP,
     bool? isMajor,
   }) {
-    if (title != null) currentSubjects[index].updateTitle(title);
-    if (credit != null) currentSubjects[index].updateCredit(credit);
-    if (gradeType != null) currentSubjects[index].updateGradeType(gradeType);
-    if (isPNP != null) currentSubjects[index].updateIsPNP(isPNP);
-    if (isMajor != null) currentSubjects[index].updateIsMajor(isMajor);
+    if (title != null) currentSubjects[index].title = title;
+    if (credit != null) currentSubjects[index].credit = credit;
+    if (gradeType != null) currentSubjects[index].gradeType = gradeType;
+    if (isPNP != null) currentSubjects[index].isPNP = isPNP;
+    if (isMajor != null) currentSubjects[index].isMajor = isMajor;
 
-    if (credit != null ||
-        gradeType != null ||
-        isPNP != null ||
-        isMajor != null) {
+    if (credit != null || gradeType != null || isPNP != null) {
+      updateGrades();
+    } else if (isMajor != null) {
+      updateSubjects(_subjects.value);
       updateGrades();
     }
   }
 
   void setDefault(int index) {
-    currentSubjects[index].updateTitle("");
-    currentSubjects[index].updateCredit(0);
-    currentSubjects[index].updateGradeType(GradeType.ap);
-    currentSubjects[index].updateIsMajor(false);
-    currentSubjects[index].updateIsPNP(false);
+    currentSubjects[index].title = '';
+    currentSubjects[index].credit = 0;
+    currentSubjects[index].gradeType = GradeType.ap;
+    currentSubjects[index].isMajor = false;
+    currentSubjects[index].isPNP = false;
     updateGrades();
   }
 
@@ -253,9 +250,6 @@ class GradeOfTerm {
       _gradeAmounts[i].close();
     }
 
-    for (int i = 0; i < currentSubjects.length; i++) {
-      currentSubjects[i].dispose();
-    }
     _subjects.close();
   }
 }

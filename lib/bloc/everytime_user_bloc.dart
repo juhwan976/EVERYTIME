@@ -1,10 +1,11 @@
 import 'dart:developer';
+import 'dart:math';
 
+import 'package:everytime/model/enums.dart';
 import 'package:everytime/model/time_table_page/grade_calculator_page/bar_chart_data.dart';
 import 'package:everytime/model/time_table_page/grade_calculator_page/grade_of_term.dart';
-import 'package:everytime/model/time_table_page/grade_calculator_page/grade_type.dart';
 import 'package:everytime/model/time_table_page/grade_calculator_page/point_chart_data.dart';
-import 'package:everytime/model/time_table_page/privacy_bounds.dart';
+import 'package:everytime/model/time_table_page/time_n_place_data.dart';
 import 'package:everytime/model/time_table_page/time_table.dart';
 import 'package:everytime/model/time_table_page/time_table_data.dart';
 import 'package:rxdart/subjects.dart';
@@ -98,6 +99,131 @@ class EverytimeUserBloc {
     }
 
     return {'timeTable': tempTimeTable, 'index': tempIndex};
+  }
+
+  // ignore: constant_identifier_names
+  static const DEFAULT_TIME_LIST_LENGTH = 7;
+  // ignore: constant_identifier_names
+  static const DEFAULT_TIME_LIST_LAST = 15;
+  // ignore: constant_identifier_names
+  static const DEFAULT_WEEK_OF_DAY_LIST_LENGTH = 5;
+
+  final _timeList =
+      BehaviorSubject<List<int>>.seeded([9, 10, 11, 12, 13, 14, 15]);
+  final _weekOfDayList = BehaviorSubject<List<WeekOfDay>>.seeded([
+    WeekOfDay.mon,
+    WeekOfDay.tue,
+    WeekOfDay.wed,
+    WeekOfDay.thu,
+    WeekOfDay.fri
+  ]);
+
+  Stream<List<int>> get timeList => _timeList.stream;
+  Stream<List<WeekOfDay>> get weekOfDay => _weekOfDayList.stream;
+
+  Function(List<int>) get updateTimeList => _timeList.sink.add;
+  Function(List<WeekOfDay>) get updateWeekOfDayList => _weekOfDayList.sink.add;
+
+  List<int> get currentTimeList => _timeList.value;
+  List<WeekOfDay> get currentWeekOfDay => _weekOfDayList.value;
+
+  void removeTimeList(
+      int startHour, int endHour, List<TimeNPlaceData> timeNPlaceData) {
+    int hour = max(startHour, endHour);
+    if (hour <= DEFAULT_TIME_LIST_LENGTH) {
+      return;
+    }
+
+    bool isExist = false;
+    int largestHour = 0;
+
+    for (int i = 0; i < timeNPlaceData.length; i++) {
+      if (max(timeNPlaceData[i].startHour, timeNPlaceData[i].endHour) >= hour) {
+        isExist = true;
+        break;
+      } else {
+        largestHour =
+            max(timeNPlaceData[i].startHour, timeNPlaceData[i].endHour);
+      }
+    }
+
+    if (isExist) {
+      return;
+    } else {
+      List<int> currentList = currentTimeList;
+      largestHour = (largestHour <= DEFAULT_TIME_LIST_LAST)
+          ? DEFAULT_TIME_LIST_LAST
+          : largestHour;
+
+      for (int i = (hour - largestHour); i >= 1; i--) {
+        currentList.removeLast();
+      }
+
+      updateTimeList(currentList);
+    }
+  }
+
+  void addTimeList(int startHour, int endHour) {
+    int hour = max(startHour, endHour);
+
+    if (hour > currentTimeList.last) {
+      List<int> currentList = currentTimeList;
+      int currentLast = currentList.last;
+
+      for (int i = 1; i <= hour - currentLast; i++) {
+        currentList.add(currentList.last + 1);
+      }
+
+      updateTimeList(currentList);
+    }
+  }
+
+  void removeWeekOfDay(
+      int weekOfDayIndex, List<TimeNPlaceData> timeNPlaceData) {
+    if (weekOfDayIndex <= DEFAULT_WEEK_OF_DAY_LIST_LENGTH - 1) {
+      return;
+    }
+
+    bool isExist = false;
+    int largestIndex = 0;
+
+    for (int i = 0; i < timeNPlaceData.length; i++) {
+      if (timeNPlaceData[i].weekOfDay.index >=
+          WeekOfDay.getByIndex(weekOfDayIndex).index) {
+        isExist = true;
+        break;
+      } else {
+        largestIndex = WeekOfDay.getByWeekOfDay(timeNPlaceData[i].weekOfDay);
+      }
+    }
+
+    if (isExist) {
+      return;
+    } else {
+      List<WeekOfDay> currentList = currentWeekOfDay;
+      largestIndex = (largestIndex <= DEFAULT_WEEK_OF_DAY_LIST_LENGTH - 1)
+          ? DEFAULT_WEEK_OF_DAY_LIST_LENGTH - 1
+          : largestIndex;
+
+      for (int i = (weekOfDayIndex - largestIndex); i >= 1; i--) {
+        currentList.removeLast();
+      }
+
+      updateWeekOfDayList(currentList);
+    }
+  }
+
+  void addWeekOfDay(int weekOfDayIndex) {
+    if (weekOfDayIndex > currentWeekOfDay.length - 1) {
+      List<WeekOfDay> currentList = currentWeekOfDay;
+      int currentLength = currentList.length;
+
+      for (int i = 1; i <= weekOfDayIndex - (currentLength - 1); i++) {
+        currentList.add(WeekOfDay.getByIndex(currentLength - 1 + i));
+      }
+
+      updateWeekOfDayList(currentList);
+    }
   }
 
   //****************************************************************************************************
@@ -361,6 +487,9 @@ class EverytimeUserBloc {
     }
     _timeTableList.close();
     _selectedTimeTable.close();
+
+    _timeList.close();
+    _weekOfDayList.close();
 
     //****************************************************************************************************
 

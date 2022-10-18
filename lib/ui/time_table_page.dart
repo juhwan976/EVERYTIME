@@ -7,12 +7,12 @@ import 'package:everytime/component/custom_appbar_button.dart';
 import 'package:everytime/component/custom_container.dart';
 import 'package:everytime/component/custom_container_title.dart';
 import 'package:everytime/component/custom_cupertino_alert_dialog.dart';
-import 'package:everytime/component/custom_modal_bottom_sheet.dart';
+import 'package:everytime/component/custom_button_modal_bottom_sheet.dart';
 import 'package:everytime/component/empty_content.dart';
 import 'package:everytime/component/time_table_page/show_grade_mini.dart';
 import 'package:everytime/component/time_table_page/time_table_chart.dart';
 import 'package:everytime/global_variable.dart';
-import 'package:everytime/model/time_table_page/privacy_bounds.dart';
+import 'package:everytime/model/enums.dart';
 import 'package:everytime/model/time_table_page/time_table.dart';
 import 'package:everytime/ui/time_table_page/add_time_table_page.dart';
 import 'package:everytime/ui/time_table_page/grade_calculator_page.dart';
@@ -277,9 +277,9 @@ class _TimeTablePageState extends State<TimeTablePage>
     showModalBottomSheet(
       context: context,
       builder: (bottomSheetContext) {
-        return CustomModalBottomSheet(
+        return CustomButtonModalBottomSheet(
           buttonList: [
-            CustomModalBottomSheetButton(
+            CustomButtonModalBottomSheetButton(
               icon: Icons.edit_outlined,
               title: '이름 변경',
               onPressed: () {
@@ -287,7 +287,7 @@ class _TimeTablePageState extends State<TimeTablePage>
                 _buildEditNameDialog(context);
               },
             ),
-            CustomModalBottomSheetButton(
+            CustomButtonModalBottomSheetButton(
               icon: Icons.lock_outlined,
               title: '공개 범위 변경',
               onPressed: () {
@@ -299,27 +299,27 @@ class _TimeTablePageState extends State<TimeTablePage>
                 );
               },
             ),
-            CustomModalBottomSheetButton(
+            CustomButtonModalBottomSheetButton(
               icon: Icons.auto_fix_high_outlined,
               title: '테마 및 스타일 변경',
               onPressed: () {},
             ),
-            CustomModalBottomSheetButton(
+            CustomButtonModalBottomSheetButton(
               icon: Icons.image_outlined,
               title: '이미지로 저장',
               onPressed: () {},
             ),
-            CustomModalBottomSheetButton(
+            CustomButtonModalBottomSheetButton(
               icon: Icons.share_outlined,
               title: 'URL로 공유',
               onPressed: () {},
             ),
-            CustomModalBottomSheetButton(
+            CustomButtonModalBottomSheetButton(
               icon: Icons.chat_outlined,
               title: '카카오톡으로 공유',
               onPressed: () {},
             ),
-            CustomModalBottomSheetButton(
+            CustomButtonModalBottomSheetButton(
               icon: Icons.delete_outline,
               title: '삭제',
               onPressed: () {
@@ -440,9 +440,9 @@ class _TimeTablePageState extends State<TimeTablePage>
     showModalBottomSheet(
       context: context,
       builder: (bottomSheetContext) {
-        return CustomModalBottomSheet(
+        return CustomButtonModalBottomSheet(
           buttonList: [
-            CustomModalBottomSheetButton(
+            CustomButtonModalBottomSheetButton(
               icon: Icons.add_box_outlined,
               title: '아이디로 친구 추가',
               onPressed: () {
@@ -450,7 +450,7 @@ class _TimeTablePageState extends State<TimeTablePage>
                 _buildAddFriendUseId(context);
               },
             ),
-            CustomModalBottomSheetButton(
+            CustomButtonModalBottomSheetButton(
               icon: Icons.chat_outlined,
               title: '카카오톡으로 친구 초대',
               onPressed: () {
@@ -644,7 +644,29 @@ class _TimeTablePageState extends State<TimeTablePage>
                               height: appHeight * 0.43,
                               usePadding: false,
                               //TODO: 데이터를 받아서 수정하는 코드 작성.
-                              child: TimeTableChart(),
+                              child: StreamBuilder(
+                                stream: widget.userBloc.timeList,
+                                builder: (_, timeListSnapshot) {
+                                  if (timeListSnapshot.hasData) {
+                                    return StreamBuilder(
+                                      stream: widget.userBloc.weekOfDay,
+                                      builder: (_, weekOfDaySnapshot) {
+                                        if (weekOfDaySnapshot.hasData) {
+                                          return TimeTableChart(
+                                            timeList: timeListSnapshot.data!,
+                                            weekOfDayList:
+                                                weekOfDaySnapshot.data!,
+                                          );
+                                        }
+
+                                        return const SizedBox.shrink();
+                                      },
+                                    );
+                                  }
+
+                                  return const SizedBox.shrink();
+                                },
+                              ),
                             );
                           }
                         },

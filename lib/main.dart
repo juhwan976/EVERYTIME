@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:everytime/bloc/everytime_user_bloc.dart';
 import 'package:flutter/material.dart';
 

@@ -1,4 +1,4 @@
-import 'package:everytime/model/time_table_page/privacy_bounds.dart';
+import 'package:everytime/model/enums.dart';
 import 'package:everytime/model/time_table_page/time_table_data.dart';
 import 'package:rxdart/subjects.dart';
 

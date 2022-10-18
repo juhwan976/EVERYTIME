@@ -4,9 +4,10 @@ import 'package:everytime/bloc/everytime_user_bloc.dart';
 import 'package:everytime/bloc/grade_calculator_bloc.dart';
 import 'package:everytime/component/custom_container.dart';
 import 'package:everytime/component/custom_cupertino_alert_dialog.dart';
+import 'package:everytime/component/custom_picker_modal_bottom_sheet.dart';
 import 'package:everytime/component/time_table_page/show_grade_large.dart';
+import 'package:everytime/model/enums.dart';
 import 'package:everytime/model/time_table_page/grade_calculator_page/bar_chart_data.dart';
-import 'package:everytime/model/time_table_page/grade_calculator_page/grade_type.dart';
 import 'package:everytime/global_variable.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -32,8 +33,6 @@ class _GradeCalculatorPageState extends State<GradeCalculatorPage> {
   final _targetCreditController = TextEditingController();
 
   final _gradeCalculatorBloc = GradeCalculatorBloc();
-
-  final _selectGradeSheetHeight = appHeight * 0.4;
 
   final List<Color> _barChartColorData = [
     const Color.fromRGBO(220, 130, 105, 1),
@@ -98,13 +97,14 @@ class _GradeCalculatorPageState extends State<GradeCalculatorPage> {
     _gradeCalculatorBloc.updateIsShowingSelectGrade(true);
     widget.userBloc.updateIsShowingKeyboard(false);
 
-    if (position.global.dy >= (appHeight - _selectGradeSheetHeight)) {
+    if (position.global.dy >=
+        (appHeight - CustomPickerModalBottomSheet.sheetHeight)) {
       Future.delayed(
         const Duration(milliseconds: 350),
         () {
           _pageScrollController.animateTo(
               (position.global.dy -
-                  (appHeight - _selectGradeSheetHeight) +
+                  (appHeight - CustomPickerModalBottomSheet.sheetHeight) +
                   _pageScrollController.offset),
               duration: const Duration(milliseconds: 200),
               curve: Curves.linear);
@@ -120,78 +120,39 @@ class _GradeCalculatorPageState extends State<GradeCalculatorPage> {
       context: context,
       builder: (popupContext) {
         int selected = GradeType.getIndex(currentGradeType);
-        return Container(
-          color: Theme.of(context).backgroundColor,
-          height: _selectGradeSheetHeight,
-          child: Column(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  CupertinoButton(
-                    child: const Text(
-                      '취소',
-                      style: TextStyle(
-                        fontSize: 17.5,
-                      ),
-                    ),
-                    onPressed: () {
-                      Navigator.pop(popupContext);
-                    },
-                  ),
-                  const Text(
-                    '성적을 선택해주세요',
-                    style: TextStyle(
-                      fontSize: 20,
-                    ),
-                  ),
-                  CupertinoButton(
-                    child: const Text(
-                      '저장',
-                      style: TextStyle(
-                        fontSize: 17.5,
-                      ),
-                    ),
-                    onPressed: () {
-                      widget.userBloc.getTerm(currentTermIndex).updateSubject(
-                            currentIndex - 1,
-                            gradeType: GradeType.getByIndex(selected),
-                            isPNP:
-                                (GradeType.getByIndex(selected) == GradeType.p)
-                                    ? true
-                                    : null,
-                          );
-                      widget.userBloc.updateData();
+        return CustomPickerModalBottomSheet(
+          title: '성적을 선택해주세요',
+          onPressedCancel: () {
+            Navigator.pop(popupContext);
+          },
+          onPressedSave: () {
+            widget.userBloc.getTerm(currentTermIndex).updateSubject(
+                  currentIndex - 1,
+                  gradeType: GradeType.getByIndex(selected),
+                  isPNP: (GradeType.getByIndex(selected) == GradeType.p)
+                      ? true
+                      : null,
+                );
+            widget.userBloc.updateData();
 
-                      Navigator.pop(popupContext);
-                    },
-                  ),
-                ],
-              ),
-              Container(
-                height: 1,
-                color: Theme.of(context).dividerColor,
-              ),
-              Expanded(
-                child: CupertinoPicker(
-                  itemExtent: appHeight * 0.05,
-                  scrollController: FixedExtentScrollController(
-                    initialItem: GradeType.getIndex(currentGradeType),
-                  ),
-                  children: List.generate(
-                    11,
-                    (index) {
-                      return Center(
-                        child: Text(GradeType.getGradeElementAt(index)),
-                      );
-                    },
-                  ),
-                  onSelectedItemChanged: (index) {
-                    selected = index;
-                  },
-                ),
-              ),
-            ],
+            Navigator.pop(popupContext);
+          },
+          picker: CupertinoPicker(
+            itemExtent: appHeight * 0.05,
+            scrollController: FixedExtentScrollController(
+              initialItem: GradeType.getIndex(currentGradeType),
+            ),
+            children: List.generate(
+              11,
+              (index) {
+                return Center(
+                  child: Text(GradeType.getGradeElementAt(index)),
+                );
+              },
+            ),
+            onSelectedItemChanged: (index) {
+              selected = index;
+            },
           ),
         );
       },
@@ -229,8 +190,7 @@ class _GradeCalculatorPageState extends State<GradeCalculatorPage> {
                     ),
                     child: CupertinoTextField(
                       controller: TextEditingController(
-                        text: subjectsSnapshot
-                            .data![currentIndex - 1].currentTitle,
+                        text: subjectsSnapshot.data![currentIndex - 1].title,
                       ),
                       padding: EdgeInsets.zero,
                       cursorColor: Theme.of(context).highlightColor,
@@ -279,8 +239,7 @@ class _GradeCalculatorPageState extends State<GradeCalculatorPage> {
                 if (subjectsSnapshot.hasData) {
                   return CupertinoTextField(
                     controller: TextEditingController(
-                      text: subjectsSnapshot
-                          .data![currentIndex - 1].currentCredit
+                      text: subjectsSnapshot.data![currentIndex - 1].credit
                           .toString(),
                     ),
                     textAlign: TextAlign.center,
@@ -326,68 +285,53 @@ class _GradeCalculatorPageState extends State<GradeCalculatorPage> {
             stream: widget.userBloc.getTerm(currentTermIndex).subjects,
             builder: (_, subjectsSnapshot) {
               if (subjectsSnapshot.hasData) {
-                return StreamBuilder(
-                    stream: subjectsSnapshot.data![currentIndex - 1].gradeType,
-                    builder: (_, gradeTypeSnapshot) {
-                      if (gradeTypeSnapshot.hasData) {
-                        if (gradeTypeSnapshot.hasData) {
-                          return PositionedTapDetector2(
-                            child: Container(
-                              width: appWidth * 0.16,
-                              height: appHeight * 0.0520625,
-                              alignment: Alignment.center,
-                              color: Theme.of(context).scaffoldBackgroundColor,
-                              child: StreamBuilder(
-                                stream:
-                                    _gradeCalculatorBloc.currentSelectingIndex,
-                                builder: (currentSelectingIndexContext,
-                                    currentSelectingIndexSnapshot) {
-                                  return Text(
-                                    gradeTypeSnapshot.data!.data,
-                                    style:
-                                        (currentSelectingIndexSnapshot.data !=
-                                                null)
-                                            ? (currentSelectingIndexSnapshot
-                                                        .data! ==
-                                                    currentIndex
-                                                ? TextStyle(
-                                                    fontSize: 17,
-                                                    fontWeight: FontWeight.bold,
-                                                    color: Theme.of(context)
-                                                        .focusColor,
-                                                  )
-                                                : const TextStyle(
-                                                    fontSize: 17,
-                                                  ))
-                                            : const TextStyle(
-                                                fontSize: 17,
-                                              ),
-                                  );
-                                },
-                              ),
-                            ),
-                            onTap: (position) async {
-                              if (FocusScope.of(context).hasFocus) {
-                                //log('has Focus');
-                                FocusScope.of(context).unfocus();
-                                // await keyboard animation
-                                await Future.delayed(
-                                    const Duration(milliseconds: 350));
-                              }
-                              _buildSelectGradeSheet(
-                                  currentTermIndex,
-                                  currentIndex,
-                                  gradeTypeSnapshot.data!,
-                                  position);
-                              _gradeCalculatorBloc
-                                  .updateCurrentSelectingIndex(currentIndex);
-                            },
-                          );
-                        }
-                      }
-
-                      return const SizedBox.shrink();
-                    });
+                return PositionedTapDetector2(
+                  child: Container(
+                    width: appWidth * 0.16,
+                    height: appHeight * 0.0520625,
+                    alignment: Alignment.center,
+                    color: Theme.of(context).scaffoldBackgroundColor,
+                    child: StreamBuilder(
+                      stream: _gradeCalculatorBloc.currentSelectingIndex,
+                      builder: (currentSelectingIndexContext,
+                          currentSelectingIndexSnapshot) {
+                        return Text(
+                          subjectsSnapshot
+                              .data![currentIndex - 1].gradeType.data,
+                          style: (currentSelectingIndexSnapshot.data != null)
+                              ? (currentSelectingIndexSnapshot.data! ==
+                                      currentIndex
+                                  ? TextStyle(
+                                      fontSize: 17,
+                                      fontWeight: FontWeight.bold,
+                                      color: Theme.of(context).focusColor,
+                                    )
+                                  : const TextStyle(
+                                      fontSize: 17,
+                                    ))
+                              : const TextStyle(
+                                  fontSize: 17,
+                                ),
+                        );
+                      },
+                    ),
+                  ),
+                  onTap: (position) async {
+                    if (FocusScope.of(context).hasFocus) {
+                      //log('has Focus');
+                      FocusScope.of(context).unfocus();
+                      // await keyboard animation
+                      await Future.delayed(const Duration(milliseconds: 350));
+                    }
+                    _buildSelectGradeSheet(
+                        currentTermIndex,
+                        currentIndex,
+                        subjectsSnapshot.data![currentIndex - 1].gradeType,
+                        position);
+                    _gradeCalculatorBloc
+                        .updateCurrentSelectingIndex(currentIndex);
+                  },
+                );
               }
 
               return const SizedBox.shrink();
@@ -401,33 +345,23 @@ class _GradeCalculatorPageState extends State<GradeCalculatorPage> {
               stream: widget.userBloc.getTerm(currentTermIndex).subjects,
               builder: (_, subjectsSnapshot) {
                 if (subjectsSnapshot.hasData) {
-                  return StreamBuilder(
-                    stream: subjectsSnapshot.data![currentIndex - 1].isMajor,
-                    builder: (_, isMajorSnapshot) {
-                      if (isMajorSnapshot.hasData) {
-                        return Checkbox(
-                          value: isMajorSnapshot.data!,
-                          activeColor: Theme.of(context).focusColor,
-                          checkColor: Theme.of(context).scaffoldBackgroundColor,
-                          shape: RoundedRectangleBorder(
-                            side: BorderSide(
-                              width: 0.5,
-                              color: Theme.of(context).dividerColor,
-                            ),
-                            borderRadius: BorderRadius.circular(5),
-                          ),
-                          onChanged: (newValue) {
-                            widget.userBloc
-                                .getTerm(currentTermIndex)
-                                .updateSubject(currentIndex - 1,
-                                    isMajor: newValue);
+                  return Checkbox(
+                    value: subjectsSnapshot.data![currentIndex - 1].isMajor,
+                    activeColor: Theme.of(context).focusColor,
+                    checkColor: Theme.of(context).scaffoldBackgroundColor,
+                    shape: RoundedRectangleBorder(
+                      side: BorderSide(
+                        width: 0.5,
+                        color: Theme.of(context).dividerColor,
+                      ),
+                      borderRadius: BorderRadius.circular(5),
+                    ),
+                    onChanged: (newValue) {
+                      widget.userBloc
+                          .getTerm(currentTermIndex)
+                          .updateSubject(currentIndex - 1, isMajor: newValue);
 
-                            widget.userBloc.updateData();
-                          },
-                        );
-                      }
-
-                      return const SizedBox.shrink();
+                      widget.userBloc.updateData();
                     },
                   );
                 }
@@ -1359,7 +1293,8 @@ class _GradeCalculatorPageState extends State<GradeCalculatorPage> {
                     return AnimatedContainer(
                       duration: const Duration(milliseconds: 300),
                       height: isShowingSelectGradeSnapshot.data!
-                          ? _selectGradeSheetHeight - paddingBottom
+                          ? CustomPickerModalBottomSheet.sheetHeight -
+                              paddingBottom
                           : 0,
                     );
                   }

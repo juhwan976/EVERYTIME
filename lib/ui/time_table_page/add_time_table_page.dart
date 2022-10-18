@@ -137,15 +137,31 @@ class _AddTimeTablePageState extends State<AddTimeTablePage> {
                 physics: const ClampingScrollPhysics(),
                 padding: EdgeInsets.zero,
                 children: [
-                  TimeTableChart(),
+                  StreamBuilder(
+                    stream: widget.userBloc.timeList,
+                    builder: (_, timeListSnapshot) {
+                      if (timeListSnapshot.hasData) {
+                        return StreamBuilder(
+                          stream: widget.userBloc.weekOfDay,
+                          builder: (_, weekOfDaySnapshot) {
+                            if (weekOfDaySnapshot.hasData) {
+                              return TimeTableChart(
+                                timeList: timeListSnapshot.data!,
+                                weekOfDayList: weekOfDaySnapshot.data!,
+                              );
+                            }
+
+                            return const SizedBox.shrink();
+                          },
+                        );
+                      }
+
+                      return const SizedBox.shrink();
+                    },
+                  )
                 ],
               ),
             ),
-            // SizedBox(
-            //   child: ListView(
-            //     scrollDirection: Axis.horizontal,
-            //   ),
-            // ),
           ],
         ),
       ),

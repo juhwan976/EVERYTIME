@@ -1,13 +1,13 @@
 import 'package:everytime/global_variable.dart';
 import 'package:flutter/material.dart';
 
-class CustomModalBottomSheet extends StatelessWidget {
-  const CustomModalBottomSheet({
+class CustomButtonModalBottomSheet extends StatelessWidget {
+  const CustomButtonModalBottomSheet({
     Key? key,
     required this.buttonList,
   }) : super(key: key);
 
-  final List<CustomModalBottomSheetButton> buttonList;
+  final List<CustomButtonModalBottomSheetButton> buttonList;
 
   @override
   Widget build(BuildContext context) {
@@ -63,12 +63,12 @@ class CustomModalBottomSheet extends StatelessWidget {
   }
 }
 
-class CustomModalBottomSheetButton {
+class CustomButtonModalBottomSheetButton {
   final IconData icon;
   final String title;
   final Function? onPressed;
 
-  CustomModalBottomSheetButton({
+  CustomButtonModalBottomSheetButton({
     required this.icon,
     required this.title,
     this.onPressed,

@@ -17,6 +17,8 @@ class GradeCalculatorBloc {
   Function(int?) get updateCurrentSelectingIndex =>
       _currentSelectingIndex.sink.add;
 
+  int get currentCurrentTerm => _currentTerm.value;
+
   dispose() {
     _currentTerm.close();
 
