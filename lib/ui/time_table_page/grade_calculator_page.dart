@@ -12,6 +12,7 @@ import 'package:everytime/global_variable.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:positioned_tap_detector_2/positioned_tap_detector_2.dart';
+import 'package:rxdart/subjects.dart';
 import 'package:scrolls_to_top/scrolls_to_top.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 
@@ -28,6 +29,8 @@ class GradeCalculatorPage extends StatefulWidget {
 }
 
 class _GradeCalculatorPageState extends State<GradeCalculatorPage> {
+  final _delay = BehaviorSubject<bool>();
+
   final _pageScrollController = ScrollController();
   final _termScrollController = ScrollController();
   final _targetCreditController = TextEditingController();
@@ -581,6 +584,10 @@ class _GradeCalculatorPageState extends State<GradeCalculatorPage> {
   @override
   initState() {
     super.initState();
+
+    Future.delayed(const Duration(milliseconds: 300)).then((value) {
+      _delay.sink.add(true);
+    });
   }
 
   @override
@@ -728,10 +735,10 @@ class _GradeCalculatorPageState extends State<GradeCalculatorPage> {
                   },
                 ),
               ),
-              FutureBuilder(
-                future: Future.delayed(const Duration(milliseconds: 300)),
-                builder: (_, futureSnapshot) {
-                  if (futureSnapshot.connectionState == ConnectionState.done) {
+              StreamBuilder(
+                stream: _delay.stream,
+                builder: (_, delaySnapshot) {
+                  if (delaySnapshot.hasData) {
                     return Expanded(
                       child: ListView(
                         physics: const ClampingScrollPhysics(),

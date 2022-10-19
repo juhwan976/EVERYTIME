@@ -47,6 +47,47 @@ class EverytimeUserBloc {
   String? checkTimeTableCrash(TimeTableData data) {
     String? result;
 
+    // 입력한 값들과 비교
+    for (int oldIndex = 0; oldIndex < data.dates.length; oldIndex++) {
+      TimeNPlaceData oldData = data.dates[oldIndex];
+      for (int newIndex = 0; newIndex < data.dates.length; newIndex++) {
+        if (oldIndex == newIndex) {
+          continue;
+        }
+
+        TimeNPlaceData newData = data.dates[newIndex];
+
+        if (oldData.dayOfWeek == newData.dayOfWeek) {
+          DateTime newStartTime =
+              DateTime(1970, 1, 1, newData.startHour, newData.startMinute);
+          DateTime newEndTime =
+              DateTime(1970, 1, 1, newData.endHour, newData.endMinute);
+          DateTime oldStartTime =
+              DateTime(1970, 1, 1, oldData.startHour, oldData.startMinute);
+          DateTime oldEndTime =
+              DateTime(1970, 1, 1, oldData.endHour, oldData.endMinute);
+
+          // int newPlayTime = newEndTime.difference(newStartTime).inMinutes;
+          int oldPlayTime = oldEndTime.difference(oldStartTime).inMinutes;
+
+          if (newStartTime.difference(oldStartTime).inMinutes >= oldPlayTime) {
+            /* do nothing */
+          } else if (oldEndTime.difference(newEndTime).inMinutes >=
+              oldPlayTime) {
+            /* do nothing */
+          } else {
+            result = '입력 받은';
+            break;
+          }
+        }
+      }
+    }
+
+    if (result != null) {
+      return result;
+    }
+
+    // 전체 시간표와 비교
     for (TimeTableData timeTableData
         in currentSelectedTimeTable!.currentTimeTableData) {
       for (TimeNPlaceData oldData in timeTableData.dates) {
@@ -158,7 +199,7 @@ class EverytimeUserBloc {
   // ignore: constant_identifier_names
   static const DEFAULT_TIME_LIST_LAST = 15;
   // ignore: constant_identifier_names
-  static const DEFAULT_WEEK_OF_DAY_LIST_LENGTH = 5;
+  static const DEFAULT_WEEK_OF_DAY_LIST_LAST = 4;
 
   final _timeList =
       BehaviorSubject<List<int>>.seeded([9, 10, 11, 12, 13, 14, 15]);
@@ -267,37 +308,33 @@ class EverytimeUserBloc {
 
   void removeDayOfWeek(
       int dayOfWeekIndex, List<TimeNPlaceData> timeNPlaceData) {
-    if (dayOfWeekIndex <= DEFAULT_WEEK_OF_DAY_LIST_LENGTH - 1) {
+    if (dayOfWeekIndex <= DEFAULT_WEEK_OF_DAY_LIST_LAST) {
       return;
     }
 
     bool isExist = false;
-    int largestIndex = 0;
+    int largestIndex = DEFAULT_WEEK_OF_DAY_LIST_LAST;
 
     for (int i = 0; i < timeNPlaceData.length; i++) {
       if (timeNPlaceData[i].dayOfWeek.index >=
           DayOfWeek.getByIndex(dayOfWeekIndex).index) {
         isExist = true;
-        break;
       } else {
         largestIndex = DayOfWeek.getByDayOfWeek(timeNPlaceData[i].dayOfWeek);
       }
     }
 
-    if (isExist) {
-      return;
-    } else {
-      List<DayOfWeek> currentList = currentDayOfWeek;
-      largestIndex = (largestIndex <= DEFAULT_WEEK_OF_DAY_LIST_LENGTH - 1)
-          ? DEFAULT_WEEK_OF_DAY_LIST_LENGTH - 1
+    List<DayOfWeek> currentList = currentDayOfWeek;
+    if (!isExist) {
+      largestIndex = (largestIndex <= DEFAULT_WEEK_OF_DAY_LIST_LAST)
+          ? DEFAULT_WEEK_OF_DAY_LIST_LAST
           : largestIndex;
 
       for (int i = (dayOfWeekIndex - largestIndex); i >= 1; i--) {
         currentList.removeLast();
       }
-
-      updateDayOfWeekList(currentList);
     }
+    updateDayOfWeekList(currentList);
   }
 
   void addDayOfWeek(int dayOfWeekIndex) {

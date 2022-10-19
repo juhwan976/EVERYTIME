@@ -145,13 +145,17 @@ class _AddTimeTablePageState extends State<AddTimeTablePage> {
                           stream: widget.userBloc.dayOfWeek,
                           builder: (_, dayOfWeekSnapshot) {
                             if (dayOfWeekSnapshot.hasData) {
-                              return const SizedBox.shrink();
-                              // return TimeTableChart(
-                              //   timeTableData:
-                              //   startHour: timeListSnapshot.data![0],
-                              //   timeList: timeListSnapshot.data!,
-                              //   dayOfWeekList: dayOfWeekSnapshot.data!,
-                              // );
+                              return TimeTableChart(
+                                userBloc: widget.userBloc,
+                                timeTableData: widget
+                                    .userBloc
+                                    .currentSelectedTimeTable!
+                                    .currentTimeTableData,
+                                startHour: timeListSnapshot.data![0],
+                                timeList: timeListSnapshot.data!,
+                                dayOfWeekList: dayOfWeekSnapshot.data!,
+                                isActivateButton: false,
+                              );
                             }
 
                             return const SizedBox.shrink();

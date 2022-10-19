@@ -34,14 +34,25 @@ class TimeTableChart extends StatelessWidget {
 
     for (TimeNPlaceData data in shadowDataList ?? []) {
       result.add(
-        Positioned(
-          top: _getPositionTop(data),
-          left: _getPositionLeft(data),
-          child: Container(
-            height: _getContainerHeight(data),
-            width: _getContainerWidth(),
-            color: Colors.black.withOpacity(0.2),
-          ),
+        StreamBuilder(
+          stream: userBloc.isDark,
+          builder: (_, isDarkSnapshot) {
+            if (isDarkSnapshot.hasData) {
+              return Positioned(
+                top: _getPositionTop(data),
+                left: _getPositionLeft(data),
+                child: Container(
+                  height: _getContainerHeight(data),
+                  width: _getContainerWidth(),
+                  color: isDarkSnapshot.data!
+                      ? Colors.white.withOpacity(0.2)
+                      : Colors.black.withOpacity(0.2),
+                ),
+              );
+            }
+
+            return const SizedBox.shrink();
+          },
         ),
       );
     }
@@ -76,6 +87,61 @@ class TimeTableChart extends StatelessWidget {
     return ((appHeight * 0.022) + (appHeight * diff / 5 * 0.00483));
   }
 
+  void _buildRemoveDialog(BuildContext context, int currentIndex) {
+    showCupertinoDialog(
+      context: context,
+      builder: (dialogContext) {
+        return CustomCupertinoAlertDialog(
+          isDarkStream: userBloc.isDark,
+          title: '수업을 삭제하시겠습니까?',
+          actions: [
+            CupertinoButton(
+              padding: EdgeInsets.zero,
+              child: const Text('취소'),
+              onPressed: () {
+                Navigator.pop(dialogContext);
+              },
+            ),
+            CupertinoButton(
+              padding: EdgeInsets.zero,
+              child: const Text('삭제'),
+              onPressed: () {
+                // TODO: 전체 시간표 목록 갱신해야함.
+
+                for (int i = timeTableData[currentIndex].dates.length - 1;
+                    i >= 0;
+                    i--) {
+                  DayOfWeek tempDayOfWeek =
+                      timeTableData[currentIndex].dates[i].dayOfWeek;
+                  int tempStartHour =
+                      timeTableData[currentIndex].dates[i].startHour;
+                  int tempEndHour =
+                      timeTableData[currentIndex].dates[i].endHour;
+
+                  timeTableData[currentIndex].dates.removeAt(i);
+                  userBloc.removeDayOfWeek(
+                    DayOfWeek.getByDayOfWeek(tempDayOfWeek),
+                    timeTableData[currentIndex].dates,
+                  );
+                  userBloc.removeTimeList(
+                    tempStartHour,
+                    tempEndHour,
+                    timeTableData[currentIndex].dates,
+                  );
+                }
+
+                userBloc.currentSelectedTimeTable!
+                    .removeTimeTableData(currentIndex);
+
+                Navigator.pop(dialogContext);
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   List<Widget> _buildButtons(BuildContext context) {
     List<Widget> result = [];
     for (int i = 0; i < timeTableData.length; i++) {
@@ -100,7 +166,7 @@ class TimeTableChart extends StatelessWidget {
                             return CustomButtonModalBottomSheet(
                               buttonList: [
                                 CustomButtonModalBottomSheetButton(
-                                  icon: Icons.chat,
+                                  icon: Icons.chat_outlined,
                                   title: '강의평',
                                 ),
                                 CustomButtonModalBottomSheetButton(
@@ -120,38 +186,7 @@ class TimeTableChart extends StatelessWidget {
                                   title: '삭제',
                                   onPressed: () {
                                     Navigator.pop(bottomSheetContext);
-                                    showCupertinoDialog(
-                                      context: context,
-                                      builder: (dialogContext) {
-                                        return CustomCupertinoAlertDialog(
-                                          isDarkStream: userBloc.isDark,
-                                          title: '수업을 삭제하시겠습니까?',
-                                          actions: [
-                                            CupertinoButton(
-                                              padding: EdgeInsets.zero,
-                                              child: const Text('취소'),
-                                              onPressed: () {
-                                                Navigator.pop(dialogContext);
-                                              },
-                                            ),
-                                            CupertinoButton(
-                                              padding: EdgeInsets.zero,
-                                              child: const Text('삭제'),
-                                              onPressed: () {
-                                                // TODO: 전체 시간표 목록 갱신해야함.
-                                                // TODO: dayOfWeek랑 timeList를 현재값 기준으로 갱신해야함.
-
-                                                userBloc
-                                                    .currentSelectedTimeTable!
-                                                    .removeTimeTableData(i);
-
-                                                Navigator.pop(dialogContext);
-                                              },
-                                            ),
-                                          ],
-                                        );
-                                      },
-                                    );
+                                    _buildRemoveDialog(context, i);
                                   },
                                 ),
                               ],

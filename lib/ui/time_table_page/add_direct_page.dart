@@ -466,6 +466,52 @@ class _AddDirectPageState extends State<AddDirectPage> {
     );
   }
 
+  Widget _buildTimeTableChart(BuildContext context) {
+    return ListView(
+      padding: EdgeInsets.zero,
+      physics: const ClampingScrollPhysics(),
+      children: [
+        StreamBuilder(
+          stream: _addDirectBloc.timeNPlaceData,
+          builder: (_, timeNPlaceDataSnapshot) {
+            if (timeNPlaceDataSnapshot.hasData) {
+              return StreamBuilder(
+                stream: widget.userBloc.timeList,
+                builder: (_, timeListSnapshot) {
+                  if (timeListSnapshot.hasData) {
+                    return StreamBuilder(
+                      stream: widget.userBloc.dayOfWeek,
+                      builder: (_, dayOfWeekSnapshot) {
+                        if (dayOfWeekSnapshot.hasData) {
+                          return TimeTableChart(
+                            userBloc: widget.userBloc,
+                            timeTableData: widget.userBloc
+                                .currentSelectedTimeTable!.currentTimeTableData,
+                            timeList: timeListSnapshot.data!,
+                            dayOfWeekList: dayOfWeekSnapshot.data!,
+                            shadowDataList: timeNPlaceDataSnapshot.data,
+                            startHour: timeListSnapshot.data![0],
+                            isActivateButton: false,
+                          );
+                        }
+
+                        return const SizedBox.shrink();
+                      },
+                    );
+                  }
+
+                  return const SizedBox.shrink();
+                },
+              );
+            }
+
+            return const SizedBox.shrink();
+          },
+        ),
+      ],
+    );
+  }
+
   @override
   dispose() {
     super.dispose();
@@ -483,10 +529,10 @@ class _AddDirectPageState extends State<AddDirectPage> {
         bottom: false,
         child: GestureDetector(
           onTap: () {
+            if (widget.userBloc.currentIsShowingKeyboard) {
+              widget.userBloc.updateIsShowingKeyboard(false);
+            }
             if (primaryFocus?.hasFocus ?? false) {
-              if (widget.userBloc.currentIsShowingKeyboard) {
-                widget.userBloc.updateIsShowingKeyboard(false);
-              }
               primaryFocus?.unfocus();
             }
           },
@@ -511,6 +557,7 @@ class _AddDirectPageState extends State<AddDirectPage> {
                           color: Theme.of(context).highlightColor,
                         ),
                         onPressed: () {
+                          _addDirectBloc.resetTimeNPlaceData();
                           widget.userBloc.updateIsShowingKeyboard(false);
                           Navigator.pop(context);
                         },
@@ -545,28 +592,9 @@ class _AddDirectPageState extends State<AddDirectPage> {
                           if (primaryFocus?.hasFocus ?? false) {
                             primaryFocus?.unfocus();
                           }
-                          widget.userBloc.updateIsShowingKeyboard(false);
 
-                          if (_subjectNameController.text.isEmpty) {
-                            showCupertinoDialog(
-                              context: context,
-                              builder: (dialogContext) {
-                                return CustomCupertinoAlertDialog(
-                                  isDarkStream: widget.userBloc.isDark,
-                                  title: '수업명을 입력해주세요',
-                                  actions: [
-                                    CupertinoButton(
-                                      padding: EdgeInsets.zero,
-                                      child: const Text('확인'),
-                                      onPressed: () {
-                                        Navigator.pop(dialogContext);
-                                      },
-                                    ),
-                                  ],
-                                );
-                              },
-                            );
-                            return;
+                          if (widget.userBloc.currentIsShowingKeyboard) {
+                            widget.userBloc.updateIsShowingKeyboard(false);
                           }
 
                           if (_addDirectBloc.currentTimeNPlaceData.isEmpty) {
@@ -621,6 +649,28 @@ class _AddDirectPageState extends State<AddDirectPage> {
                             return;
                           }
 
+                          if (_subjectNameController.text.isEmpty) {
+                            showCupertinoDialog(
+                              context: context,
+                              builder: (dialogContext) {
+                                return CustomCupertinoAlertDialog(
+                                  isDarkStream: widget.userBloc.isDark,
+                                  title: '수업명을 입력해주세요',
+                                  actions: [
+                                    CupertinoButton(
+                                      padding: EdgeInsets.zero,
+                                      child: const Text('확인'),
+                                      onPressed: () {
+                                        Navigator.pop(dialogContext);
+                                      },
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+                            return;
+                          }
+
                           //TODO: 전체 시간표 목록 갱신해야함.
                           widget.userBloc.currentSelectedTimeTable!
                               .addTimeTableData(tempData);
@@ -649,90 +699,12 @@ class _AddDirectPageState extends State<AddDirectPage> {
                       height: !isShowingKeyboardSnapshot.data!
                           ? appHeight * 0.3025
                           : 0,
-                      child: FutureBuilder(
-                        future: Future.delayed(Duration(
-                            milliseconds:
-                                !isShowingKeyboardSnapshot.data! ? 300 : 0)),
-                        builder: (_, futureSnapshot) {
-                          if (futureSnapshot.connectionState ==
-                              ConnectionState.done) {
-                            return Visibility(
-                              visible: !isShowingKeyboardSnapshot.data!,
-                              child: CustomContainer(
-                                usePadding: false,
-                                child: ListView(
-                                  padding: EdgeInsets.zero,
-                                  physics: const ClampingScrollPhysics(),
-                                  children: [
-                                    Stack(
-                                      children: [
-                                        StreamBuilder(
-                                          stream: _addDirectBloc.timeNPlaceData,
-                                          builder: (_, timeNPlaceDataSnapshot) {
-                                            if (timeNPlaceDataSnapshot
-                                                .hasData) {
-                                              return StreamBuilder(
-                                                stream:
-                                                    widget.userBloc.timeList,
-                                                builder: (_, timeListSnapshot) {
-                                                  if (timeListSnapshot
-                                                      .hasData) {
-                                                    return StreamBuilder(
-                                                      stream: widget
-                                                          .userBloc.dayOfWeek,
-                                                      builder: (_,
-                                                          dayOfWeekSnapshot) {
-                                                        if (dayOfWeekSnapshot
-                                                            .hasData) {
-                                                          return TimeTableChart(
-                                                            userBloc:
-                                                                widget.userBloc,
-                                                            timeTableData: widget
-                                                                .userBloc
-                                                                .currentSelectedTimeTable!
-                                                                .currentTimeTableData,
-                                                            timeList:
-                                                                timeListSnapshot
-                                                                    .data!,
-                                                            dayOfWeekList:
-                                                                dayOfWeekSnapshot
-                                                                    .data!,
-                                                            shadowDataList:
-                                                                timeNPlaceDataSnapshot
-                                                                    .data,
-                                                            startHour:
-                                                                timeListSnapshot
-                                                                    .data![0],
-                                                            isActivateButton:
-                                                                false,
-                                                          );
-                                                        }
-
-                                                        return const SizedBox
-                                                            .shrink();
-                                                      },
-                                                    );
-                                                  }
-
-                                                  return const SizedBox
-                                                      .shrink();
-                                                },
-                                              );
-                                            }
-
-                                            return const SizedBox.shrink();
-                                          },
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            );
-                          }
-
-                          return const CupertinoActivityIndicator();
-                        },
+                      child: Visibility(
+                        visible: !isShowingKeyboardSnapshot.data!,
+                        child: CustomContainer(
+                          usePadding: false,
+                          child: _buildTimeTableChart(context),
+                        ),
                       ),
                     );
                   }
