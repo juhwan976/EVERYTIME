@@ -1,24 +1,196 @@
-import 'dart:developer';
-
+import 'package:everytime/bloc/everytime_user_bloc.dart';
+import 'package:everytime/component/custom_button_modal_bottom_sheet.dart';
+import 'package:everytime/component/custom_cupertino_alert_dialog.dart';
 import 'package:everytime/global_variable.dart';
 import 'package:everytime/model/enums.dart';
 import 'package:everytime/model/time_table_page/time_n_place_data.dart';
+import 'package:everytime/model/time_table_page/time_table_data.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class TimeTableChart extends StatelessWidget {
-  TimeTableChart({
+  const TimeTableChart({
     Key? key,
+    required this.userBloc,
+    this.isActivateButton = true,
     this.shadowDataList,
+    required this.timeTableData,
+    required this.startHour,
     required this.timeList,
-    required this.weekOfDayList,
+    required this.dayOfWeekList,
   }) : super(key: key);
 
-  final List<TimeNPlaceData>? shadowDataList;
   final List<int> timeList;
-  final List<WeekOfDay> weekOfDayList;
+  final List<DayOfWeek> dayOfWeekList;
+  final List<TimeTableData> timeTableData;
+  final List<TimeNPlaceData>? shadowDataList;
+  final EverytimeUserBloc userBloc;
+  final bool isActivateButton;
 
-  final int _timeTableStartHour = 9;
-  List<List<int>> shadowBoard = [];
+  final int startHour;
+
+  List<Widget> _buildShadows(BuildContext context) {
+    List<Widget> result = [];
+
+    for (TimeNPlaceData data in shadowDataList ?? []) {
+      result.add(
+        Positioned(
+          top: _getPositionTop(data),
+          left: _getPositionLeft(data),
+          child: Container(
+            height: _getContainerHeight(data),
+            width: _getContainerWidth(),
+            color: Colors.black.withOpacity(0.2),
+          ),
+        ),
+      );
+    }
+
+    return result;
+  }
+
+  double _getContainerWidth() {
+    return appWidth * 0.8995 / dayOfWeekList.length;
+  }
+
+  double _getContainerHeight(TimeNPlaceData data) {
+    DateTime startTime = DateTime(1970, 1, 1, data.endHour, data.endMinute);
+    DateTime endTime = DateTime(1970, 1, 1, data.startHour, data.startMinute);
+    int diff = startTime.difference(endTime).inMinutes;
+
+    return (appHeight * diff / 5 * 0.00483);
+  }
+
+  double _getPositionLeft(TimeNPlaceData data) {
+    double pos = appWidth *
+        (0.8995 / dayOfWeekList.length) *
+        (DayOfWeek.getByDayOfWeek(data.dayOfWeek));
+    return (appWidth * 0.055) + pos;
+  }
+
+  double _getPositionTop(TimeNPlaceData data) {
+    DateTime startTime = DateTime(1970, 1, 1, data.startHour, data.startMinute);
+    DateTime endTime = DateTime(1970, 1, 1, timeList[0], 0);
+    int diff = startTime.difference(endTime).inMinutes;
+
+    return ((appHeight * 0.022) + (appHeight * diff / 5 * 0.00483));
+  }
+
+  List<Widget> _buildButtons(BuildContext context) {
+    List<Widget> result = [];
+    for (int i = 0; i < timeTableData.length; i++) {
+      for (TimeNPlaceData data in timeTableData[i].dates) {
+        result.add(
+          Positioned(
+            top: _getPositionTop(data),
+            left: _getPositionLeft(data),
+            child: Container(
+              height: _getContainerHeight(data),
+              width: _getContainerWidth(),
+              color: Colors.green,
+              child: MaterialButton(
+                padding: EdgeInsets.zero,
+                highlightColor: Colors.transparent,
+                splashColor: Colors.transparent,
+                onPressed: isActivateButton
+                    ? () {
+                        showModalBottomSheet(
+                          context: context,
+                          builder: (bottomSheetContext) {
+                            return CustomButtonModalBottomSheet(
+                              buttonList: [
+                                CustomButtonModalBottomSheetButton(
+                                  icon: Icons.chat,
+                                  title: '강의평',
+                                ),
+                                CustomButtonModalBottomSheetButton(
+                                  icon: Icons.note_add_outlined,
+                                  title: '메모 추가',
+                                ),
+                                CustomButtonModalBottomSheetButton(
+                                  icon: Icons.format_list_bulleted_outlined,
+                                  title: '할일 보기',
+                                ),
+                                CustomButtonModalBottomSheetButton(
+                                  icon: Icons.edit_outlined,
+                                  title: '약칭 지정',
+                                ),
+                                CustomButtonModalBottomSheetButton(
+                                  icon: Icons.delete_outline,
+                                  title: '삭제',
+                                  onPressed: () {
+                                    Navigator.pop(bottomSheetContext);
+                                    showCupertinoDialog(
+                                      context: context,
+                                      builder: (dialogContext) {
+                                        return CustomCupertinoAlertDialog(
+                                          isDarkStream: userBloc.isDark,
+                                          title: '수업을 삭제하시겠습니까?',
+                                          actions: [
+                                            CupertinoButton(
+                                              padding: EdgeInsets.zero,
+                                              child: const Text('취소'),
+                                              onPressed: () {
+                                                Navigator.pop(dialogContext);
+                                              },
+                                            ),
+                                            CupertinoButton(
+                                              padding: EdgeInsets.zero,
+                                              child: const Text('삭제'),
+                                              onPressed: () {
+                                                // TODO: 전체 시간표 목록 갱신해야함.
+                                                // TODO: dayOfWeek랑 timeList를 현재값 기준으로 갱신해야함.
+
+                                                userBloc
+                                                    .currentSelectedTimeTable!
+                                                    .removeTimeTableData(i);
+
+                                                Navigator.pop(dialogContext);
+                                              },
+                                            ),
+                                          ],
+                                        );
+                                      },
+                                    );
+                                  },
+                                ),
+                              ],
+                            );
+                          },
+                        );
+                      }
+                    : null,
+                child: Container(
+                  alignment: Alignment.topLeft,
+                  padding: const EdgeInsets.all(2),
+                  child: ListView(
+                    physics: const NeverScrollableScrollPhysics(),
+                    children: [
+                      Text(
+                        timeTableData[i].subjectName,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        data.place,
+                        style: const TextStyle(
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      }
+    }
+
+    return result;
+  }
 
   Widget _buildTimeTableElement(
       BuildContext context, int currentRowIndex, int currentColIndex) {
@@ -45,7 +217,7 @@ class TimeTableChart extends StatelessWidget {
       if (currentColIndex == 0) {
         return Center(
           child: Text(
-            weekOfDayList[currentRowIndex - 1].string,
+            dayOfWeekList[currentRowIndex - 1].string,
             style: TextStyle(
               fontSize: 13,
               color: Theme.of(context).secondaryHeaderColor,
@@ -53,29 +225,7 @@ class TimeTableChart extends StatelessWidget {
           ),
         );
       } else {
-        if (shadowDataList != null) {
-          if (shadowBoard[currentRowIndex - 1][currentColIndex - 1] != 0) {
-            return Center(
-              child: Container(
-                color: Color.fromRGBO(
-                    0,
-                    0,
-                    0,
-                    (shadowBoard[currentRowIndex - 1][currentColIndex - 1] > 5)
-                        ? 1
-                        : shadowBoard[currentRowIndex - 1]
-                                [currentColIndex - 1] *
-                            0.2),
-              ),
-            );
-          } else {
-            return Center();
-          }
-        } else {
-          return Center(
-              // child: Text('${currentRowIndex}, ${currentColIndex}'),
-              );
-        }
+        return const Center();
       }
     }
   }
@@ -109,52 +259,35 @@ class TimeTableChart extends StatelessWidget {
     );
   }
 
-  void _setShadowBoard(BuildContext context) {
-    for (int row = 0; row < weekOfDayList.length; row++) {
-      List<int> tempRow = [];
-      for (int col = 0; col < timeList.length; col++) {
-        tempRow.add(0);
-      }
-      shadowBoard.add(tempRow);
-    }
-
-    for (int i = 0; i < shadowDataList!.length; i++) {
-      for (int time = 0;
-          time < shadowDataList![i].endHour - shadowDataList![i].startHour;
-          time++) {
-        shadowBoard[WeekOfDay.getByWeekOfDay(shadowDataList![i].weekOfDay)]
-            [shadowDataList![i].startHour + time - _timeTableStartHour] += 1;
-      }
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    if (shadowDataList != null) {
-      _setShadowBoard(context);
-    }
-
-    return Row(
-      children: List.generate(
-        weekOfDayList.length + 1,
-        (rowIndex) {
-          return Container(
-            width: (rowIndex == 0)
-                ? appWidth * 0.055
-                : appWidth * 0.8995 / weekOfDayList.length,
-            decoration: (rowIndex + 1 == weekOfDayList.length + 1)
-                ? null
-                : BoxDecoration(
-                    border: Border(
-                      right: BorderSide(
-                        color: Theme.of(context).dividerColor,
+    return Stack(
+      children: [
+        Row(
+          children: List.generate(
+            dayOfWeekList.length + 1,
+            (rowIndex) {
+              return Container(
+                width: (rowIndex == 0)
+                    ? appWidth * 0.055
+                    : appWidth * 0.8995 / dayOfWeekList.length,
+                decoration: (rowIndex + 1 == dayOfWeekList.length + 1)
+                    ? null
+                    : BoxDecoration(
+                        border: Border(
+                          right: BorderSide(
+                            color: Theme.of(context).dividerColor,
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
-            child: _buildTimeTableCol(context, rowIndex),
-          );
-        },
-      ),
+                child: _buildTimeTableCol(context, rowIndex),
+              );
+            },
+          ),
+        ),
+        ..._buildButtons(context),
+        ..._buildShadows(context),
+      ],
     );
   }
 }

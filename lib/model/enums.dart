@@ -14,7 +14,7 @@ enum PrivacyBounds {
   private,
 }
 
-enum WeekOfDay {
+enum DayOfWeek {
   undefined('?'),
   mon('월'),
   tue('화'),
@@ -24,27 +24,27 @@ enum WeekOfDay {
   sat('토'),
   sun('일');
 
-  const WeekOfDay(this.string);
+  const DayOfWeek(this.string);
   final String string;
 
-  static List<WeekOfDay> getWeekOfDays() {
+  static List<DayOfWeek> getDayOfWeeks() {
     return [
-      WeekOfDay.mon,
-      WeekOfDay.tue,
-      WeekOfDay.wed,
-      WeekOfDay.thu,
-      WeekOfDay.fri,
-      WeekOfDay.sat,
-      WeekOfDay.sun,
+      DayOfWeek.mon,
+      DayOfWeek.tue,
+      DayOfWeek.wed,
+      DayOfWeek.thu,
+      DayOfWeek.fri,
+      DayOfWeek.sat,
+      DayOfWeek.sun,
     ];
   }
 
-  static WeekOfDay getByIndex(int index) {
-    return getWeekOfDays()[index];
+  static DayOfWeek getByIndex(int index) {
+    return getDayOfWeeks()[index];
   }
 
-  static int getByWeekOfDay(WeekOfDay weekOfDay) {
-    return getWeekOfDays().indexOf(weekOfDay);
+  static int getByDayOfWeek(DayOfWeek dayOfWeek) {
+    return getDayOfWeeks().indexOf(dayOfWeek);
   }
 }
 

@@ -728,562 +728,634 @@ class _GradeCalculatorPageState extends State<GradeCalculatorPage> {
                   },
                 ),
               ),
-              Expanded(
-                child: ListView(
-                  physics: const ClampingScrollPhysics(),
-                  controller: _pageScrollController,
-                  children: [
-                    CustomContainer(
-                      height: appHeight * 0.538,
-                      child: Container(
-                        padding: EdgeInsets.only(
-                          left: appWidth * 0.05,
-                          right: appWidth * 0.05,
-                        ),
-                        child: Column(
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                StreamBuilder(
-                                  stream: widget.userBloc.totalGradeAve,
-                                  builder: (totalGradeAveContext,
-                                      totalGradeAveSnapshot) {
-                                    if (totalGradeAveSnapshot.hasData) {
-                                      return StreamBuilder(
-                                        stream: widget.userBloc.maxAve,
-                                        builder:
-                                            (maxAveContext, maxAveSnapshot) {
-                                          if (maxAveSnapshot.hasData) {
-                                            return ShowGradeLarge(
-                                              title: '전체 평점',
-                                              currentValue:
-                                                  totalGradeAveSnapshot.data
-                                                      .toString(),
-                                              totalValue: maxAveSnapshot.data
-                                                  .toString(),
-                                            );
-                                          }
+              FutureBuilder(
+                future: Future.delayed(const Duration(milliseconds: 300)),
+                builder: (_, futureSnapshot) {
+                  if (futureSnapshot.connectionState == ConnectionState.done) {
+                    return Expanded(
+                      child: ListView(
+                        physics: const ClampingScrollPhysics(),
+                        controller: _pageScrollController,
+                        children: [
+                          CustomContainer(
+                            height: appHeight * 0.538,
+                            child: Container(
+                              padding: EdgeInsets.only(
+                                left: appWidth * 0.05,
+                                right: appWidth * 0.05,
+                              ),
+                              child: Column(
+                                children: [
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      StreamBuilder(
+                                        stream: widget.userBloc.totalGradeAve,
+                                        builder: (totalGradeAveContext,
+                                            totalGradeAveSnapshot) {
+                                          if (totalGradeAveSnapshot.hasData) {
+                                            return StreamBuilder(
+                                              stream: widget.userBloc.maxAve,
+                                              builder: (maxAveContext,
+                                                  maxAveSnapshot) {
+                                                if (maxAveSnapshot.hasData) {
+                                                  return ShowGradeLarge(
+                                                    title: '전체 평점',
+                                                    currentValue:
+                                                        totalGradeAveSnapshot
+                                                            .data
+                                                            .toString(),
+                                                    totalValue: maxAveSnapshot
+                                                        .data
+                                                        .toString(),
+                                                  );
+                                                }
 
-                                          return const SizedBox.shrink();
-                                        },
-                                      );
-                                    }
-
-                                    return const SizedBox.shrink();
-                                  },
-                                ),
-                                StreamBuilder(
-                                  stream: widget.userBloc.majorGradeAve,
-                                  builder: (majorGradeAveContext,
-                                      majorGradeAveSnapshot) {
-                                    if (majorGradeAveSnapshot.hasData) {
-                                      return StreamBuilder(
-                                        stream: widget.userBloc.maxAve,
-                                        builder:
-                                            (maxAveContext, maxAveSnapshot) {
-                                          if (maxAveSnapshot.hasData) {
-                                            return ShowGradeLarge(
-                                              title: '전공 평점',
-                                              currentValue:
-                                                  majorGradeAveSnapshot.data
-                                                      .toString(),
-                                              totalValue: maxAveSnapshot.data
-                                                  .toString(),
-                                            );
-                                          }
-
-                                          return const SizedBox.shrink();
-                                        },
-                                      );
-                                    }
-
-                                    return const SizedBox.shrink();
-                                  },
-                                ),
-                                StreamBuilder(
-                                  stream: widget.userBloc.currentCredit,
-                                  builder: (currentCreditContext,
-                                      currentCreditSnapshot) {
-                                    if (currentCreditSnapshot.hasData) {
-                                      return StreamBuilder(
-                                        stream: widget.userBloc.targetCredit,
-                                        builder: (targetCreditContext,
-                                            targetCreditSnapshot) {
-                                          if (targetCreditSnapshot.hasData) {
-                                            return ShowGradeLarge(
-                                              title: '취득 학점',
-                                              currentValue:
-                                                  currentCreditSnapshot.data
-                                                      .toString(),
-                                              totalValue: targetCreditSnapshot
-                                                  .data
-                                                  .toString(),
-                                              isShowButton: true,
-                                              icon: Icons.settings,
-                                              onPressed: () {
-                                                _buildEditTargetCreditDialog(
-                                                    context,
-                                                    targetCreditSnapshot.data!);
+                                                return const SizedBox.shrink();
                                               },
                                             );
                                           }
 
                                           return const SizedBox.shrink();
                                         },
-                                      );
-                                    }
+                                      ),
+                                      StreamBuilder(
+                                        stream: widget.userBloc.majorGradeAve,
+                                        builder: (majorGradeAveContext,
+                                            majorGradeAveSnapshot) {
+                                          if (majorGradeAveSnapshot.hasData) {
+                                            return StreamBuilder(
+                                              stream: widget.userBloc.maxAve,
+                                              builder: (maxAveContext,
+                                                  maxAveSnapshot) {
+                                                if (maxAveSnapshot.hasData) {
+                                                  return ShowGradeLarge(
+                                                    title: '전공 평점',
+                                                    currentValue:
+                                                        majorGradeAveSnapshot
+                                                            .data
+                                                            .toString(),
+                                                    totalValue: maxAveSnapshot
+                                                        .data
+                                                        .toString(),
+                                                  );
+                                                }
 
-                                    return const SizedBox.shrink();
-                                  },
-                                ),
-                              ],
-                            ),
-                            Container(
-                              height: appHeight * 0.05,
-                              alignment: Alignment.bottomCenter,
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                mainAxisAlignment: MainAxisAlignment.end,
-                                children: [
+                                                return const SizedBox.shrink();
+                                              },
+                                            );
+                                          }
+
+                                          return const SizedBox.shrink();
+                                        },
+                                      ),
+                                      StreamBuilder(
+                                        stream: widget.userBloc.currentCredit,
+                                        builder: (currentCreditContext,
+                                            currentCreditSnapshot) {
+                                          if (currentCreditSnapshot.hasData) {
+                                            return StreamBuilder(
+                                              stream:
+                                                  widget.userBloc.targetCredit,
+                                              builder: (targetCreditContext,
+                                                  targetCreditSnapshot) {
+                                                if (targetCreditSnapshot
+                                                    .hasData) {
+                                                  return ShowGradeLarge(
+                                                    title: '취득 학점',
+                                                    currentValue:
+                                                        currentCreditSnapshot
+                                                            .data
+                                                            .toString(),
+                                                    totalValue:
+                                                        targetCreditSnapshot
+                                                            .data
+                                                            .toString(),
+                                                    isShowButton: true,
+                                                    icon: Icons.settings,
+                                                    onPressed: () {
+                                                      _buildEditTargetCreditDialog(
+                                                          context,
+                                                          targetCreditSnapshot
+                                                              .data!);
+                                                    },
+                                                  );
+                                                }
+
+                                                return const SizedBox.shrink();
+                                              },
+                                            );
+                                          }
+
+                                          return const SizedBox.shrink();
+                                        },
+                                      ),
+                                    ],
+                                  ),
                                   Container(
-                                    height: 6,
-                                    width: 6,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: Theme.of(context).focusColor,
+                                    height: appHeight * 0.05,
+                                    alignment: Alignment.bottomCenter,
+                                    child: Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.center,
+                                      mainAxisAlignment: MainAxisAlignment.end,
+                                      children: [
+                                        Container(
+                                          height: 6,
+                                          width: 6,
+                                          decoration: BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            color: Theme.of(context).focusColor,
+                                          ),
+                                        ),
+                                        Text(
+                                          ' 전체',
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: Theme.of(context).focusColor,
+                                          ),
+                                        ),
+                                        Container(
+                                          margin: EdgeInsets.only(
+                                              left: appWidth * 0.025),
+                                          height: 6,
+                                          width: 6,
+                                          decoration: BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            color: Theme.of(context).hintColor,
+                                          ),
+                                        ),
+                                        Text(
+                                          ' 전공',
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: Theme.of(context).hintColor,
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ),
-                                  Text(
-                                    ' 전체',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: Theme.of(context).focusColor,
+                                  SizedBox(
+                                    height: appHeight * 0.21,
+                                    child: StreamBuilder(
+                                      stream: widget.userBloc.aveData,
+                                      builder:
+                                          (aveDataContext, aveDataSnapshot) {
+                                        if (aveDataSnapshot.hasData) {
+                                          return SfCartesianChart(
+                                            primaryXAxis: CategoryAxis(
+                                              maximumLabelWidth: 30,
+                                              majorGridLines:
+                                                  const MajorGridLines(
+                                                      width: 0),
+                                              majorTickLines:
+                                                  const MajorTickLines(
+                                                width: 0,
+                                                size: 0,
+                                              ),
+                                              labelAlignment:
+                                                  LabelAlignment.center,
+                                              axisLine:
+                                                  const AxisLine(width: 0),
+                                              axisLabelFormatter:
+                                                  (axisLabelRenderArgs) =>
+                                                      ChartAxisLabel(
+                                                '${aveDataSnapshot.data![axisLabelRenderArgs.value.round()].term?.split(' ')[0]}\n${aveDataSnapshot.data![axisLabelRenderArgs.value.round()].term?.split(' ')[1]}',
+                                                TextStyle(
+                                                  fontSize: 10,
+                                                  color: Theme.of(context)
+                                                      .hintColor,
+                                                ),
+                                              ),
+                                            ),
+                                            primaryYAxis: NumericAxis(
+                                              interval: 1,
+                                              minimum: 0,
+                                              maximum: 4.6,
+                                              majorGridLines: MajorGridLines(
+                                                width: 1,
+                                                color:
+                                                    Theme.of(context).hintColor,
+                                              ),
+                                              majorTickLines:
+                                                  const MajorTickLines(
+                                                width: 0,
+                                                size: 0,
+                                              ),
+                                              labelStyle: const TextStyle(
+                                                fontSize: 10,
+                                              ),
+                                              axisLine:
+                                                  const AxisLine(width: 0),
+                                              axisLabelFormatter:
+                                                  (axisLabelRenderArgs) =>
+                                                      ChartAxisLabel(
+                                                '${axisLabelRenderArgs.text}.0',
+                                                TextStyle(
+                                                  fontSize: 10,
+                                                  color: Theme.of(context)
+                                                      .hintColor,
+                                                ),
+                                              ),
+                                            ),
+                                            plotAreaBorderWidth: 0,
+                                            trackballBehavior:
+                                                TrackballBehavior(
+                                              enable: true,
+                                              lineColor:
+                                                  Theme.of(context).hintColor,
+                                              activationMode:
+                                                  ActivationMode.singleTap,
+                                            ),
+                                            series: [
+                                              StackedLineSeries(
+                                                color:
+                                                    Theme.of(context).hintColor,
+                                                markerSettings:
+                                                    const MarkerSettings(
+                                                  isVisible: true,
+                                                ),
+                                                groupName: '전공 학점',
+                                                dataSource:
+                                                    aveDataSnapshot.data!,
+                                                xValueMapper: ((datum, index) =>
+                                                    aveDataSnapshot
+                                                        .data![index].term),
+                                                yValueMapper: ((datum, index) =>
+                                                    aveDataSnapshot.data![index]
+                                                        .majorGrade),
+                                              ),
+                                              StackedLineSeries(
+                                                color: Theme.of(context)
+                                                    .focusColor,
+                                                markerSettings:
+                                                    const MarkerSettings(
+                                                  isVisible: true,
+                                                ),
+                                                groupName: '평균 학점',
+                                                dataSource:
+                                                    aveDataSnapshot.data!,
+                                                xValueMapper: ((datum, index) =>
+                                                    aveDataSnapshot
+                                                        .data![index].term),
+                                                yValueMapper: ((datum, index) =>
+                                                    aveDataSnapshot.data![index]
+                                                        .totalGrade),
+                                              ),
+                                            ],
+                                          );
+                                        }
+
+                                        return const SizedBox.shrink();
+                                      },
                                     ),
                                   ),
-                                  Container(
-                                    margin:
-                                        EdgeInsets.only(left: appWidth * 0.025),
-                                    height: 6,
-                                    width: 6,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: Theme.of(context).hintColor,
-                                    ),
-                                  ),
-                                  Text(
-                                    ' 전공',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: Theme.of(context).hintColor,
+                                  Expanded(
+                                    child: StreamBuilder(
+                                      stream: widget.userBloc.percentData,
+                                      builder: (percentDataContext,
+                                          percentDataSnapshot) {
+                                        if (percentDataSnapshot.hasData) {
+                                          return SfCartesianChart(
+                                            plotAreaBorderWidth: 0,
+                                            primaryXAxis: CategoryAxis(
+                                              isInversed: true,
+                                              maximumLabels: 4,
+                                              borderWidth: 0,
+                                              majorTickLines:
+                                                  const MajorTickLines(
+                                                width: 0,
+                                                size: 3,
+                                              ),
+                                              majorGridLines:
+                                                  const MajorGridLines(
+                                                width: 0,
+                                              ),
+                                              axisLine: const AxisLine(
+                                                width: 0,
+                                              ),
+                                              labelStyle: const TextStyle(
+                                                fontSize: 10,
+                                              ),
+                                            ),
+                                            primaryYAxis: NumericAxis(
+                                              isVisible: false,
+                                            ),
+                                            series: [
+                                              BarSeries<BarChartData, String>(
+                                                width: 0.2,
+                                                dataLabelSettings:
+                                                    DataLabelSettings(
+                                                  isVisible: true,
+                                                  builder: (data,
+                                                          point,
+                                                          series,
+                                                          pointIndex,
+                                                          seriesIndex) =>
+                                                      Text(
+                                                    '${data.percent} %',
+                                                    style: TextStyle(
+                                                      color: _barChartColorData[
+                                                          pointIndex],
+                                                      fontSize: 12,
+                                                    ),
+                                                  ),
+                                                ),
+                                                dataSource:
+                                                    percentDataSnapshot.data!,
+                                                xValueMapper: (datum, index) =>
+                                                    percentDataSnapshot
+                                                        .data![index].grade,
+                                                yValueMapper: (datum, index) =>
+                                                    percentDataSnapshot
+                                                        .data![index].percent,
+                                                pointColorMapper: (datum,
+                                                        index) =>
+                                                    _barChartColorData[index],
+                                              ),
+                                            ],
+                                          );
+                                        }
+
+                                        return const SizedBox.shrink();
+                                      },
                                     ),
                                   ),
                                 ],
                               ),
                             ),
-                            SizedBox(
-                              height: appHeight * 0.21,
-                              child: StreamBuilder(
-                                stream: widget.userBloc.aveData,
-                                builder: (aveDataContext, aveDataSnapshot) {
-                                  if (aveDataSnapshot.hasData) {
-                                    return SfCartesianChart(
-                                      primaryXAxis: CategoryAxis(
-                                        maximumLabelWidth: 30,
-                                        majorGridLines:
-                                            const MajorGridLines(width: 0),
-                                        majorTickLines: const MajorTickLines(
-                                          width: 0,
-                                          size: 0,
-                                        ),
-                                        labelAlignment: LabelAlignment.center,
-                                        axisLine: const AxisLine(width: 0),
-                                        axisLabelFormatter:
-                                            (axisLabelRenderArgs) =>
-                                                ChartAxisLabel(
-                                          '${aveDataSnapshot.data![axisLabelRenderArgs.value.round()].term?.split(' ')[0]}\n${aveDataSnapshot.data![axisLabelRenderArgs.value.round()].term?.split(' ')[1]}',
-                                          TextStyle(
-                                            fontSize: 10,
-                                            color: Theme.of(context).hintColor,
-                                          ),
-                                        ),
-                                      ),
-                                      primaryYAxis: NumericAxis(
-                                        interval: 1,
-                                        minimum: 0,
-                                        maximum: 4.6,
-                                        majorGridLines: MajorGridLines(
-                                          width: 1,
-                                          color: Theme.of(context).hintColor,
-                                        ),
-                                        majorTickLines: const MajorTickLines(
-                                          width: 0,
-                                          size: 0,
-                                        ),
-                                        labelStyle: const TextStyle(
-                                          fontSize: 10,
-                                        ),
-                                        axisLine: const AxisLine(width: 0),
-                                        axisLabelFormatter:
-                                            (axisLabelRenderArgs) =>
-                                                ChartAxisLabel(
-                                          '${axisLabelRenderArgs.text}.0',
-                                          TextStyle(
-                                            fontSize: 10,
-                                            color: Theme.of(context).hintColor,
-                                          ),
-                                        ),
-                                      ),
-                                      plotAreaBorderWidth: 0,
-                                      trackballBehavior: TrackballBehavior(
-                                        enable: true,
-                                        lineColor: Theme.of(context).hintColor,
-                                        activationMode:
-                                            ActivationMode.singleTap,
-                                      ),
-                                      series: [
-                                        StackedLineSeries(
-                                          color: Theme.of(context).hintColor,
-                                          markerSettings: const MarkerSettings(
-                                            isVisible: true,
-                                          ),
-                                          groupName: '전공 학점',
-                                          dataSource: aveDataSnapshot.data!,
-                                          xValueMapper: ((datum, index) =>
-                                              aveDataSnapshot
-                                                  .data![index].term),
-                                          yValueMapper: ((datum, index) =>
-                                              aveDataSnapshot
-                                                  .data![index].majorGrade),
-                                        ),
-                                        StackedLineSeries(
-                                          color: Theme.of(context).focusColor,
-                                          markerSettings: const MarkerSettings(
-                                            isVisible: true,
-                                          ),
-                                          groupName: '평균 학점',
-                                          dataSource: aveDataSnapshot.data!,
-                                          xValueMapper: ((datum, index) =>
-                                              aveDataSnapshot
-                                                  .data![index].term),
-                                          yValueMapper: ((datum, index) =>
-                                              aveDataSnapshot
-                                                  .data![index].totalGrade),
-                                        ),
-                                      ],
-                                    );
-                                  }
-
-                                  return const SizedBox.shrink();
-                                },
-                              ),
-                            ),
-                            Expanded(
-                              child: StreamBuilder(
-                                stream: widget.userBloc.percentData,
-                                builder:
-                                    (percentDataContext, percentDataSnapshot) {
-                                  if (percentDataSnapshot.hasData) {
-                                    return SfCartesianChart(
-                                      plotAreaBorderWidth: 0,
-                                      primaryXAxis: CategoryAxis(
-                                        isInversed: true,
-                                        maximumLabels: 4,
-                                        borderWidth: 0,
-                                        majorTickLines: const MajorTickLines(
-                                          width: 0,
-                                          size: 3,
-                                        ),
-                                        majorGridLines: const MajorGridLines(
-                                          width: 0,
-                                        ),
-                                        axisLine: const AxisLine(
-                                          width: 0,
-                                        ),
-                                        labelStyle: const TextStyle(
-                                          fontSize: 10,
-                                        ),
-                                      ),
-                                      primaryYAxis: NumericAxis(
-                                        isVisible: false,
-                                      ),
-                                      series: [
-                                        BarSeries<BarChartData, String>(
-                                          width: 0.2,
-                                          dataLabelSettings: DataLabelSettings(
-                                            isVisible: true,
-                                            builder: (data, point, series,
-                                                    pointIndex, seriesIndex) =>
-                                                Text(
-                                              '${data.percent} %',
-                                              style: TextStyle(
-                                                color: _barChartColorData[
-                                                    pointIndex],
-                                                fontSize: 12,
+                          ),
+                          SizedBox(
+                            height: appHeight * 0.11,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Container(
+                                  margin: EdgeInsets.only(
+                                    top: appHeight * 0.025,
+                                    left: appWidth * 0.05,
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      StreamBuilder(
+                                        stream:
+                                            _gradeCalculatorBloc.currentTerm,
+                                        builder:
+                                            (streamBuilderContext, snapshot) {
+                                          if (snapshot.hasData) {
+                                            return Text(
+                                              widget.userBloc
+                                                  .getTerm(snapshot.data!)
+                                                  .term,
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 26,
                                               ),
+                                            );
+                                          }
+
+                                          return const SizedBox.shrink();
+                                        },
+                                      ),
+                                      SizedBox(
+                                        height: appHeight * 0.0075,
+                                      ),
+                                      Row(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.center,
+                                        children: [
+                                          const Text(
+                                            '평점',
+                                            style: TextStyle(
+                                              fontSize: 14,
                                             ),
                                           ),
-                                          dataSource: percentDataSnapshot.data!,
-                                          xValueMapper: (datum, index) =>
-                                              percentDataSnapshot
-                                                  .data![index].grade,
-                                          yValueMapper: (datum, index) =>
-                                              percentDataSnapshot
-                                                  .data![index].percent,
-                                          pointColorMapper: (datum, index) =>
-                                              _barChartColorData[index],
-                                        ),
-                                      ],
-                                    );
-                                  }
+                                          StreamBuilder(
+                                            stream: _gradeCalculatorBloc
+                                                .currentTerm,
+                                            builder: (currentTermIndexContext,
+                                                currentTermIndexSnapshot) {
+                                              if (currentTermIndexSnapshot
+                                                  .hasData) {
+                                                return StreamBuilder(
+                                                  stream: widget.userBloc
+                                                      .getTotalGradeAve(
+                                                          currentTermIndexSnapshot
+                                                              .data!),
+                                                  builder: (totalGradeAveContext,
+                                                      totalGradeAveSnapshot) {
+                                                    if (totalGradeAveSnapshot
+                                                        .hasData) {
+                                                      return Container(
+                                                        padding:
+                                                            const EdgeInsets
+                                                                .only(
+                                                          bottom: 2,
+                                                        ),
+                                                        margin: EdgeInsets.only(
+                                                          left:
+                                                              appWidth * 0.005,
+                                                          right:
+                                                              appWidth * 0.02,
+                                                        ),
+                                                        child: Text(
+                                                          '${totalGradeAveSnapshot.data!}',
+                                                          style: TextStyle(
+                                                            color: Theme.of(
+                                                                    context)
+                                                                .focusColor,
+                                                            fontSize: 14,
+                                                            fontWeight:
+                                                                FontWeight.bold,
+                                                          ),
+                                                        ),
+                                                      );
+                                                    }
 
-                                  return const SizedBox.shrink();
-                                },
-                              ),
+                                                    return const SizedBox
+                                                        .shrink();
+                                                  },
+                                                );
+                                              }
+
+                                              return const SizedBox.shrink();
+                                            },
+                                          ),
+                                          const Text(
+                                            '전공',
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                            ),
+                                          ),
+                                          StreamBuilder(
+                                            stream: _gradeCalculatorBloc
+                                                .currentTerm,
+                                            builder: (currentTermIndexContext,
+                                                currentTermIndexSnapshot) {
+                                              if (currentTermIndexSnapshot
+                                                  .hasData) {
+                                                return StreamBuilder(
+                                                  stream: widget.userBloc
+                                                      .getMajorGradeAve(
+                                                          currentTermIndexSnapshot
+                                                              .data!),
+                                                  builder: (majorGradeAveContext,
+                                                      majorGradeAveSnapshot) {
+                                                    if (majorGradeAveSnapshot
+                                                        .hasData) {
+                                                      return Container(
+                                                        padding:
+                                                            const EdgeInsets
+                                                                .only(
+                                                          bottom: 2,
+                                                        ),
+                                                        margin: EdgeInsets.only(
+                                                          left:
+                                                              appWidth * 0.005,
+                                                          right:
+                                                              appWidth * 0.02,
+                                                        ),
+                                                        child: Text(
+                                                          '${majorGradeAveSnapshot.data!}',
+                                                          style: TextStyle(
+                                                            color: Theme.of(
+                                                                    context)
+                                                                .focusColor,
+                                                            fontSize: 14,
+                                                            fontWeight:
+                                                                FontWeight.bold,
+                                                          ),
+                                                        ),
+                                                      );
+                                                    }
+
+                                                    return const SizedBox
+                                                        .shrink();
+                                                  },
+                                                );
+                                              }
+
+                                              return const SizedBox.shrink();
+                                            },
+                                          ),
+                                          const Text(
+                                            '취득',
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                            ),
+                                          ),
+                                          StreamBuilder(
+                                            stream: _gradeCalculatorBloc
+                                                .currentTerm,
+                                            builder: (currentTermIndexContext,
+                                                currentTermIndexSnapshot) {
+                                              if (currentTermIndexSnapshot
+                                                  .hasData) {
+                                                return StreamBuilder(
+                                                  stream: widget.userBloc
+                                                      .getCreditAmount(
+                                                          currentTermIndexSnapshot
+                                                              .data!),
+                                                  builder: (creditAmountContext,
+                                                      creditAmountSnapshot) {
+                                                    if (creditAmountSnapshot
+                                                        .hasData) {
+                                                      return Container(
+                                                        padding:
+                                                            const EdgeInsets
+                                                                .only(
+                                                          bottom: 2,
+                                                        ),
+                                                        margin: EdgeInsets.only(
+                                                          left:
+                                                              appWidth * 0.005,
+                                                        ),
+                                                        child: Text(
+                                                          '${creditAmountSnapshot.data!}',
+                                                          style: TextStyle(
+                                                            color: Theme.of(
+                                                                    context)
+                                                                .focusColor,
+                                                            fontSize: 14,
+                                                            fontWeight:
+                                                                FontWeight.bold,
+                                                          ),
+                                                        ),
+                                                      );
+                                                    }
+
+                                                    return const SizedBox
+                                                        .shrink();
+                                                  },
+                                                );
+                                              }
+
+                                              return const SizedBox.shrink();
+                                            },
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                //TODO: 시간표 불러오기 기능 만들기
+                                Container(
+                                  margin: EdgeInsets.only(
+                                    right: appWidth * 0.05,
+                                  ),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    SizedBox(
-                      height: appHeight * 0.11,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Container(
-                            margin: EdgeInsets.only(
-                              top: appHeight * 0.025,
-                              left: appWidth * 0.05,
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                StreamBuilder(
-                                  stream: _gradeCalculatorBloc.currentTerm,
-                                  builder: (streamBuilderContext, snapshot) {
-                                    if (snapshot.hasData) {
-                                      return Text(
-                                        widget.userBloc
-                                            .getTerm(snapshot.data!)
-                                            .term,
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 26,
+                          ),
+                          StreamBuilder(
+                            stream: _gradeCalculatorBloc.currentTerm,
+                            builder: (_, currentTermIndexSnapshot) {
+                              if (currentTermIndexSnapshot.hasData) {
+                                return StreamBuilder(
+                                  stream: widget.userBloc
+                                      .getTerm(currentTermIndexSnapshot.data!)
+                                      .subjects,
+                                  builder: (_, subjectsSnapshot) {
+                                    if (subjectsSnapshot.hasData) {
+                                      return SizedBox(
+                                        height: (subjectsSnapshot.data!.length +
+                                                2) *
+                                            appHeight *
+                                            0.05313,
+                                        child: CustomContainer(
+                                          height:
+                                              (subjectsSnapshot.data!.length +
+                                                      2) *
+                                                  appHeight *
+                                                  0.05313,
+                                          usePadding: false,
+                                          child: _buildEditSubjects(
+                                            context,
+                                            currentTermIndexSnapshot.data!,
+                                            subjectsSnapshot.data!.length,
+                                          ),
                                         ),
                                       );
                                     }
 
                                     return const SizedBox.shrink();
                                   },
-                                ),
-                                SizedBox(
-                                  height: appHeight * 0.0075,
-                                ),
-                                Row(
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [
-                                    const Text(
-                                      '평점',
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                      ),
-                                    ),
-                                    StreamBuilder(
-                                      stream: _gradeCalculatorBloc.currentTerm,
-                                      builder: (currentTermIndexContext,
-                                          currentTermIndexSnapshot) {
-                                        if (currentTermIndexSnapshot.hasData) {
-                                          return StreamBuilder(
-                                            stream: widget.userBloc
-                                                .getTotalGradeAve(
-                                                    currentTermIndexSnapshot
-                                                        .data!),
-                                            builder: (totalGradeAveContext,
-                                                totalGradeAveSnapshot) {
-                                              if (totalGradeAveSnapshot
-                                                  .hasData) {
-                                                return Container(
-                                                  padding:
-                                                      const EdgeInsets.only(
-                                                    bottom: 2,
-                                                  ),
-                                                  margin: EdgeInsets.only(
-                                                    left: appWidth * 0.005,
-                                                    right: appWidth * 0.02,
-                                                  ),
-                                                  child: Text(
-                                                    '${totalGradeAveSnapshot.data!}',
-                                                    style: TextStyle(
-                                                      color: Theme.of(context)
-                                                          .focusColor,
-                                                      fontSize: 14,
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                    ),
-                                                  ),
-                                                );
-                                              }
-
-                                              return const SizedBox.shrink();
-                                            },
-                                          );
-                                        }
-
-                                        return const SizedBox.shrink();
-                                      },
-                                    ),
-                                    const Text(
-                                      '전공',
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                      ),
-                                    ),
-                                    StreamBuilder(
-                                      stream: _gradeCalculatorBloc.currentTerm,
-                                      builder: (currentTermIndexContext,
-                                          currentTermIndexSnapshot) {
-                                        if (currentTermIndexSnapshot.hasData) {
-                                          return StreamBuilder(
-                                            stream: widget.userBloc
-                                                .getMajorGradeAve(
-                                                    currentTermIndexSnapshot
-                                                        .data!),
-                                            builder: (majorGradeAveContext,
-                                                majorGradeAveSnapshot) {
-                                              if (majorGradeAveSnapshot
-                                                  .hasData) {
-                                                return Container(
-                                                  padding:
-                                                      const EdgeInsets.only(
-                                                    bottom: 2,
-                                                  ),
-                                                  margin: EdgeInsets.only(
-                                                    left: appWidth * 0.005,
-                                                    right: appWidth * 0.02,
-                                                  ),
-                                                  child: Text(
-                                                    '${majorGradeAveSnapshot.data!}',
-                                                    style: TextStyle(
-                                                      color: Theme.of(context)
-                                                          .focusColor,
-                                                      fontSize: 14,
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                    ),
-                                                  ),
-                                                );
-                                              }
-
-                                              return const SizedBox.shrink();
-                                            },
-                                          );
-                                        }
-
-                                        return const SizedBox.shrink();
-                                      },
-                                    ),
-                                    const Text(
-                                      '취득',
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                      ),
-                                    ),
-                                    StreamBuilder(
-                                      stream: _gradeCalculatorBloc.currentTerm,
-                                      builder: (currentTermIndexContext,
-                                          currentTermIndexSnapshot) {
-                                        if (currentTermIndexSnapshot.hasData) {
-                                          return StreamBuilder(
-                                            stream: widget.userBloc
-                                                .getCreditAmount(
-                                                    currentTermIndexSnapshot
-                                                        .data!),
-                                            builder: (creditAmountContext,
-                                                creditAmountSnapshot) {
-                                              if (creditAmountSnapshot
-                                                  .hasData) {
-                                                return Container(
-                                                  padding:
-                                                      const EdgeInsets.only(
-                                                    bottom: 2,
-                                                  ),
-                                                  margin: EdgeInsets.only(
-                                                    left: appWidth * 0.005,
-                                                  ),
-                                                  child: Text(
-                                                    '${creditAmountSnapshot.data!}',
-                                                    style: TextStyle(
-                                                      color: Theme.of(context)
-                                                          .focusColor,
-                                                      fontSize: 14,
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                    ),
-                                                  ),
-                                                );
-                                              }
-
-                                              return const SizedBox.shrink();
-                                            },
-                                          );
-                                        }
-
-                                        return const SizedBox.shrink();
-                                      },
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                          //TODO: 시간표 불러오기 기능 만들기
-                          Container(
-                            margin: EdgeInsets.only(
-                              right: appWidth * 0.05,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    StreamBuilder(
-                      stream: _gradeCalculatorBloc.currentTerm,
-                      builder: (_, currentTermIndexSnapshot) {
-                        if (currentTermIndexSnapshot.hasData) {
-                          return StreamBuilder(
-                            stream: widget.userBloc
-                                .getTerm(currentTermIndexSnapshot.data!)
-                                .subjects,
-                            builder: (_, subjectsSnapshot) {
-                              if (subjectsSnapshot.hasData) {
-                                return SizedBox(
-                                  height: (subjectsSnapshot.data!.length + 2) *
-                                      appHeight *
-                                      0.05313,
-                                  child: CustomContainer(
-                                    height:
-                                        (subjectsSnapshot.data!.length + 2) *
-                                            appHeight *
-                                            0.05313,
-                                    usePadding: false,
-                                    child: _buildEditSubjects(
-                                      context,
-                                      currentTermIndexSnapshot.data!,
-                                      subjectsSnapshot.data!.length,
-                                    ),
-                                  ),
                                 );
                               }
 
                               return const SizedBox.shrink();
                             },
-                          );
-                        }
+                          ),
+                        ],
+                      ),
+                    );
+                  }
 
-                        return const SizedBox.shrink();
-                      },
-                    ),
-                  ],
-                ),
+                  return const SizedBox.shrink();
+                },
               ),
               StreamBuilder(
                 stream: _gradeCalculatorBloc.isShowingSelectGrade,

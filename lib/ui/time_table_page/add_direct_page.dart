@@ -8,6 +8,7 @@ import 'package:everytime/component/custom_picker_modal_bottom_sheet.dart';
 import 'package:everytime/component/time_table_page/time_table_chart.dart';
 import 'package:everytime/global_variable.dart';
 import 'package:everytime/model/enums.dart';
+import 'package:everytime/model/time_table_page/time_table_data.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -33,8 +34,8 @@ class _AddDirectPageState extends State<AddDirectPage> {
     showModalBottomSheet(
       context: context,
       builder: (bottomSheetContext) {
-        int weekOfDayIndex = WeekOfDay.getByWeekOfDay(
-            _addDirectBloc.currentTimeNPlaceData[currentIndex - 1].weekOfDay);
+        int dayOfWeekIndex = DayOfWeek.getByDayOfWeek(
+            _addDirectBloc.currentTimeNPlaceData[currentIndex - 1].dayOfWeek);
         DateTime startTime = DateTime(
           DateTime.now().year,
           DateTime.now().month,
@@ -80,12 +81,12 @@ class _AddDirectPageState extends State<AddDirectPage> {
             } else {
               Navigator.pop(bottomSheetContext);
 
-              widget.userBloc.addWeekOfDay(weekOfDayIndex);
+              widget.userBloc.addDayOfWeek(dayOfWeekIndex);
               widget.userBloc.addTimeList(startTime.hour, endTime.hour);
 
               _addDirectBloc.updateTimeNPlaceData(
                 currentIndex - 1,
-                weekOfDay: WeekOfDay.getByIndex(weekOfDayIndex),
+                dayOfWeek: DayOfWeek.getByIndex(dayOfWeekIndex),
                 startHour: startTime.hour,
                 startMinute: startTime.minute,
                 endHour: endTime.hour,
@@ -106,15 +107,15 @@ class _AddDirectPageState extends State<AddDirectPage> {
                   child: CupertinoPicker(
                     itemExtent: 32,
                     scrollController: FixedExtentScrollController(
-                      initialItem: WeekOfDay.getByWeekOfDay(_addDirectBloc
-                          .currentTimeNPlaceData[currentIndex - 1].weekOfDay),
+                      initialItem: DayOfWeek.getByDayOfWeek(_addDirectBloc
+                          .currentTimeNPlaceData[currentIndex - 1].dayOfWeek),
                     ),
                     children: List.generate(
-                      WeekOfDay.getWeekOfDays().length,
+                      DayOfWeek.getDayOfWeeks().length,
                       (index) {
                         return Center(
                           child: Text(
-                            WeekOfDay.getWeekOfDays()[index].string,
+                            DayOfWeek.getDayOfWeeks()[index].string,
                             style: const TextStyle(
                               fontSize: 25,
                             ),
@@ -123,7 +124,7 @@ class _AddDirectPageState extends State<AddDirectPage> {
                       },
                     ),
                     onSelectedItemChanged: (value) {
-                      weekOfDayIndex = value;
+                      dayOfWeekIndex = value;
                     },
                   ),
                 ),
@@ -196,16 +197,16 @@ class _AddDirectPageState extends State<AddDirectPage> {
               onPressed: () {
                 Navigator.pop(dialogContext);
 
-                WeekOfDay tempWeekOfDay = _addDirectBloc
-                    .currentTimeNPlaceData[currentIndex - 1].weekOfDay;
+                DayOfWeek tempDayOfWeek = _addDirectBloc
+                    .currentTimeNPlaceData[currentIndex - 1].dayOfWeek;
                 int tempStartHour = _addDirectBloc
                     .currentTimeNPlaceData[currentIndex - 1].startHour;
                 int tempEndHour = _addDirectBloc
                     .currentTimeNPlaceData[currentIndex - 1].endHour;
 
                 _addDirectBloc.removeTimeNPlaceData(currentIndex - 1);
-                widget.userBloc.removeWeekOfDay(
-                  WeekOfDay.getByWeekOfDay(tempWeekOfDay),
+                widget.userBloc.removeDayOfWeek(
+                  DayOfWeek.getByDayOfWeek(tempDayOfWeek),
                   _addDirectBloc.currentTimeNPlaceData,
                 );
                 widget.userBloc.removeTimeList(
@@ -357,7 +358,7 @@ class _AddDirectPageState extends State<AddDirectPage> {
                                 children: [
                                   TextSpan(
                                     text: timeNPlaceDataSnapshot
-                                        .data![index - 1].weekOfDay.string,
+                                        .data![index - 1].dayOfWeek.string,
                                   ),
                                   TextSpan(
                                     text: _buildTimeString(
@@ -477,16 +478,18 @@ class _AddDirectPageState extends State<AddDirectPage> {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        if (primaryFocus?.hasFocus ?? false) {
-          widget.userBloc.updateIsShowingKeyboard(false);
-          primaryFocus?.unfocus();
-        }
-      },
-      child: Scaffold(
-        body: SafeArea(
-          bottom: false,
+    return Scaffold(
+      body: SafeArea(
+        bottom: false,
+        child: GestureDetector(
+          onTap: () {
+            if (primaryFocus?.hasFocus ?? false) {
+              if (widget.userBloc.currentIsShowingKeyboard) {
+                widget.userBloc.updateIsShowingKeyboard(false);
+              }
+              primaryFocus?.unfocus();
+            }
+          },
           child: Column(
             children: [
               SizedBox(
@@ -543,6 +546,94 @@ class _AddDirectPageState extends State<AddDirectPage> {
                             primaryFocus?.unfocus();
                           }
                           widget.userBloc.updateIsShowingKeyboard(false);
+
+                          if (_subjectNameController.text.isEmpty) {
+                            showCupertinoDialog(
+                              context: context,
+                              builder: (dialogContext) {
+                                return CustomCupertinoAlertDialog(
+                                  isDarkStream: widget.userBloc.isDark,
+                                  title: '수업명을 입력해주세요',
+                                  actions: [
+                                    CupertinoButton(
+                                      padding: EdgeInsets.zero,
+                                      child: const Text('확인'),
+                                      onPressed: () {
+                                        Navigator.pop(dialogContext);
+                                      },
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+                            return;
+                          }
+
+                          if (_addDirectBloc.currentTimeNPlaceData.isEmpty) {
+                            showCupertinoDialog(
+                              context: context,
+                              builder: (dialogContext) {
+                                return CustomCupertinoAlertDialog(
+                                  isDarkStream: widget.userBloc.isDark,
+                                  title: '시간정보를 입력해주세요',
+                                  actions: [
+                                    CupertinoButton(
+                                      padding: EdgeInsets.zero,
+                                      child: const Text('확인'),
+                                      onPressed: () {
+                                        Navigator.pop(dialogContext);
+                                      },
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+                            return;
+                          }
+
+                          TimeTableData tempData = TimeTableData(
+                            prof: _profNameController.text,
+                            dates: _addDirectBloc.currentTimeNPlaceData,
+                            subjectName: _subjectNameController.text,
+                          );
+                          String? result =
+                              widget.userBloc.checkTimeTableCrash(tempData);
+
+                          if (result != null) {
+                            showCupertinoDialog(
+                              context: context,
+                              builder: (dialogContext) {
+                                return CustomCupertinoAlertDialog(
+                                  isDarkStream: widget.userBloc.isDark,
+                                  title: '$result 수업과\n 시간이 겹칩니다.',
+                                  actions: [
+                                    CupertinoButton(
+                                      padding: EdgeInsets.zero,
+                                      child: const Text('확인'),
+                                      onPressed: () {
+                                        Navigator.pop(dialogContext);
+                                      },
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+                            return;
+                          }
+
+                          //TODO: 전체 시간표 목록 갱신해야함.
+                          widget.userBloc.currentSelectedTimeTable!
+                              .addTimeTableData(tempData);
+
+                          setState(() {
+                            _profNameController.text = '';
+                            _subjectNameController.text = '';
+                            _addDirectBloc.resetTimeNPlaceData();
+                          });
+
+                          //TODO: 전체 시간표 배열에서도 업데이트하는 구문 필요함.
+
+                          // Navigator.pop(context);
                         },
                       ),
                     ),
@@ -558,40 +649,68 @@ class _AddDirectPageState extends State<AddDirectPage> {
                       height: !isShowingKeyboardSnapshot.data!
                           ? appHeight * 0.3025
                           : 0,
-                      child: Visibility(
-                        visible: !isShowingKeyboardSnapshot.data!,
-                        child: CustomContainer(
-                          usePadding: false,
-                          child: ListView(
-                            padding: EdgeInsets.zero,
-                            physics: const ClampingScrollPhysics(),
-                            children: [
-                              Stack(
-                                children: [
-                                  StreamBuilder(
-                                    stream: _addDirectBloc.timeNPlaceData,
-                                    builder: (_, timeNPlaceDataSnapshot) {
-                                      if (timeNPlaceDataSnapshot.hasData) {
-                                        return StreamBuilder(
-                                          stream: widget.userBloc.timeList,
-                                          builder: (_, timeListSnapshot) {
-                                            if (timeListSnapshot.hasData) {
+                      child: FutureBuilder(
+                        future: Future.delayed(Duration(
+                            milliseconds:
+                                !isShowingKeyboardSnapshot.data! ? 300 : 0)),
+                        builder: (_, futureSnapshot) {
+                          if (futureSnapshot.connectionState ==
+                              ConnectionState.done) {
+                            return Visibility(
+                              visible: !isShowingKeyboardSnapshot.data!,
+                              child: CustomContainer(
+                                usePadding: false,
+                                child: ListView(
+                                  padding: EdgeInsets.zero,
+                                  physics: const ClampingScrollPhysics(),
+                                  children: [
+                                    Stack(
+                                      children: [
+                                        StreamBuilder(
+                                          stream: _addDirectBloc.timeNPlaceData,
+                                          builder: (_, timeNPlaceDataSnapshot) {
+                                            if (timeNPlaceDataSnapshot
+                                                .hasData) {
                                               return StreamBuilder(
                                                 stream:
-                                                    widget.userBloc.weekOfDay,
-                                                builder:
-                                                    (_, weekOfDaySnapshot) {
-                                                  if (weekOfDaySnapshot
+                                                    widget.userBloc.timeList,
+                                                builder: (_, timeListSnapshot) {
+                                                  if (timeListSnapshot
                                                       .hasData) {
-                                                    return TimeTableChart(
-                                                      timeList: timeListSnapshot
-                                                          .data!,
-                                                      weekOfDayList:
-                                                          weekOfDaySnapshot
-                                                              .data!,
-                                                      shadowDataList:
-                                                          timeNPlaceDataSnapshot
-                                                              .data,
+                                                    return StreamBuilder(
+                                                      stream: widget
+                                                          .userBloc.dayOfWeek,
+                                                      builder: (_,
+                                                          dayOfWeekSnapshot) {
+                                                        if (dayOfWeekSnapshot
+                                                            .hasData) {
+                                                          return TimeTableChart(
+                                                            userBloc:
+                                                                widget.userBloc,
+                                                            timeTableData: widget
+                                                                .userBloc
+                                                                .currentSelectedTimeTable!
+                                                                .currentTimeTableData,
+                                                            timeList:
+                                                                timeListSnapshot
+                                                                    .data!,
+                                                            dayOfWeekList:
+                                                                dayOfWeekSnapshot
+                                                                    .data!,
+                                                            shadowDataList:
+                                                                timeNPlaceDataSnapshot
+                                                                    .data,
+                                                            startHour:
+                                                                timeListSnapshot
+                                                                    .data![0],
+                                                            isActivateButton:
+                                                                false,
+                                                          );
+                                                        }
+
+                                                        return const SizedBox
+                                                            .shrink();
+                                                      },
                                                     );
                                                   }
 
@@ -603,17 +722,17 @@ class _AddDirectPageState extends State<AddDirectPage> {
 
                                             return const SizedBox.shrink();
                                           },
-                                        );
-                                      }
-
-                                      return const SizedBox.shrink();
-                                    },
-                                  ),
-                                ],
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ],
-                          ),
-                        ),
+                            );
+                          }
+
+                          return const CupertinoActivityIndicator();
+                        },
                       ),
                     );
                   }

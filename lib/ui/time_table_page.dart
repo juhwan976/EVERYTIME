@@ -464,6 +464,51 @@ class _TimeTablePageState extends State<TimeTablePage>
     );
   }
 
+  Widget _buildTimeTable(BuildContext context) {
+    return StreamBuilder(
+      stream: widget.userBloc.timeList,
+      builder: (_, timeListSnapshot) {
+        if (timeListSnapshot.hasData) {
+          return CustomContainer(
+            // height: appHeight * 0.43,
+            height:
+                appHeight * (0.0579 * timeListSnapshot.data!.length + 0.025),
+            usePadding: false,
+            //TODO: 데이터를 받아서 수정하는 코드 작성.
+            child: StreamBuilder(
+              stream: widget.userBloc.dayOfWeek,
+              builder: (_, dayOfWeekSnapshot) {
+                if (dayOfWeekSnapshot.hasData) {
+                  return StreamBuilder(
+                    stream:
+                        widget.userBloc.currentSelectedTimeTable!.timeTableData,
+                    builder: (_, timeTableDataSnapshot) {
+                      if (timeTableDataSnapshot.hasData) {
+                        return TimeTableChart(
+                          userBloc: widget.userBloc,
+                          timeTableData: timeTableDataSnapshot.data!,
+                          startHour: timeListSnapshot.data![0],
+                          timeList: timeListSnapshot.data!,
+                          dayOfWeekList: dayOfWeekSnapshot.data!,
+                        );
+                      }
+
+                      return const SizedBox.shrink();
+                    },
+                  );
+                }
+
+                return const SizedBox.shrink();
+              },
+            ),
+          );
+        }
+
+        return const SizedBox.shrink();
+      },
+    );
+  }
+
   void _routeGradeCalculatorPage(BuildContext context) {
     // 참고 페이지 : https://flutter-ko.dev/docs/cookbook/animation/page-route-animation
     Navigator.of(context)
@@ -640,34 +685,7 @@ class _TimeTablePageState extends State<TimeTablePage>
                               ),
                             );
                           } else {
-                            return CustomContainer(
-                              height: appHeight * 0.43,
-                              usePadding: false,
-                              //TODO: 데이터를 받아서 수정하는 코드 작성.
-                              child: StreamBuilder(
-                                stream: widget.userBloc.timeList,
-                                builder: (_, timeListSnapshot) {
-                                  if (timeListSnapshot.hasData) {
-                                    return StreamBuilder(
-                                      stream: widget.userBloc.weekOfDay,
-                                      builder: (_, weekOfDaySnapshot) {
-                                        if (weekOfDaySnapshot.hasData) {
-                                          return TimeTableChart(
-                                            timeList: timeListSnapshot.data!,
-                                            weekOfDayList:
-                                                weekOfDaySnapshot.data!,
-                                          );
-                                        }
-
-                                        return const SizedBox.shrink();
-                                      },
-                                    );
-                                  }
-
-                                  return const SizedBox.shrink();
-                                },
-                              ),
-                            );
+                            return _buildTimeTable(context);
                           }
                         },
                       ),

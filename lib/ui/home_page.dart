@@ -1,3 +1,4 @@
+import 'package:everytime/bloc/everytime_user_bloc.dart';
 import 'package:everytime/component/custom_appbar.dart';
 import 'package:everytime/component/custom_appbar_animation.dart';
 import 'package:everytime/component/custom_appbar_button.dart';
@@ -9,9 +10,11 @@ class HomePage extends StatefulWidget {
   const HomePage({
     Key? key,
     required this.scrollController,
+    required this.userBloc,
   }) : super(key: key);
 
   final ScrollController scrollController;
+  final EverytimeUserBloc userBloc;
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -67,7 +70,16 @@ class _HomePageState extends State<HomePage>
               scrollOffsetStream: _scrollOffset.stream,
               title: "에브리타임",
             ),
-            CustomAppBar(title: "대학교이름", buttonList: _buttonList),
+            StreamBuilder(
+              stream: widget.userBloc.univ,
+              builder: (_, univSnapshot) {
+                if (univSnapshot.hasData) {
+                  return CustomAppBar(
+                      title: univSnapshot.data!, buttonList: _buttonList);
+                }
+                return CustomAppBar(title: "로딩중..", buttonList: _buttonList);
+              },
+            ),
             Expanded(
               child: CustomScrollView(
                 controller: widget.scrollController,

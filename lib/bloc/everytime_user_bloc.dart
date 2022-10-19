@@ -15,10 +15,18 @@ class EverytimeUserBloc {
   // 유저 관련
   //****************************************************************************************************
   // 유저 이름
-  final _userName = BehaviorSubject<String>();
+  final _name = BehaviorSubject<String>();
+  // 유저 학교
+  final _univ = BehaviorSubject<String>();
   // 유저의 친구
   // TODO:  시간표 완성하고 이 구문도 수정
   // final _userFriends = BehaviorSubject<List<EveryTimeFriend>>();
+
+  Stream<String> get name => _name.stream;
+  Stream<String> get univ => _univ.stream;
+
+  Function(String) get updateName => _name.sink.add;
+  Function(String) get updateUniv => _univ.sink.add;
   //****************************************************************************************************
   // 시간표 관련
   // TODO: 서버 추가할 때 여기 데이터들도 올리기
@@ -35,6 +43,48 @@ class EverytimeUserBloc {
 
   List<TimeTable> get currentTimeTableList => _timeTableList.value;
   TimeTable? get currentSelectedTimeTable => _selectedTimeTable.value;
+
+  String? checkTimeTableCrash(TimeTableData data) {
+    String? result;
+
+    for (TimeTableData timeTableData
+        in currentSelectedTimeTable!.currentTimeTableData) {
+      for (TimeNPlaceData oldData in timeTableData.dates) {
+        for (TimeNPlaceData newData in data.dates) {
+          if (oldData.dayOfWeek == newData.dayOfWeek) {
+            DateTime newStartTime =
+                DateTime(1970, 1, 1, newData.startHour, newData.startMinute);
+            DateTime newEndTime =
+                DateTime(1970, 1, 1, newData.endHour, newData.endMinute);
+            DateTime oldStartTime =
+                DateTime(1970, 1, 1, oldData.startHour, oldData.startMinute);
+            DateTime oldEndTime =
+                DateTime(1970, 1, 1, oldData.endHour, oldData.endMinute);
+
+            // int newPlayTime = newEndTime.difference(newStartTime).inMinutes;
+            int oldPlayTime = oldEndTime.difference(oldStartTime).inMinutes;
+
+            if (newStartTime.difference(oldStartTime).inMinutes >=
+                oldPlayTime) {
+              /* do nothing */
+            } else if (oldEndTime.difference(newEndTime).inMinutes >=
+                oldPlayTime) {
+              /* do nothing */
+            } else {
+              result = timeTableData.subjectName;
+              break;
+            }
+          }
+        }
+      }
+
+      if (result != null) {
+        break;
+      }
+    }
+
+    return result;
+  }
 
   void removeTimeTableList(String termString, String name) {
     Map<String, dynamic> result = findTimeTable(termString, name);
@@ -104,83 +154,120 @@ class EverytimeUserBloc {
   // ignore: constant_identifier_names
   static const DEFAULT_TIME_LIST_LENGTH = 7;
   // ignore: constant_identifier_names
+  static const DEFAULT_TIME_LIST_FIRST = 9;
+  // ignore: constant_identifier_names
   static const DEFAULT_TIME_LIST_LAST = 15;
   // ignore: constant_identifier_names
   static const DEFAULT_WEEK_OF_DAY_LIST_LENGTH = 5;
 
   final _timeList =
       BehaviorSubject<List<int>>.seeded([9, 10, 11, 12, 13, 14, 15]);
-  final _weekOfDayList = BehaviorSubject<List<WeekOfDay>>.seeded([
-    WeekOfDay.mon,
-    WeekOfDay.tue,
-    WeekOfDay.wed,
-    WeekOfDay.thu,
-    WeekOfDay.fri
+  final _dayOfWeekList = BehaviorSubject<List<DayOfWeek>>.seeded([
+    DayOfWeek.mon,
+    DayOfWeek.tue,
+    DayOfWeek.wed,
+    DayOfWeek.thu,
+    DayOfWeek.fri
   ]);
 
   Stream<List<int>> get timeList => _timeList.stream;
-  Stream<List<WeekOfDay>> get weekOfDay => _weekOfDayList.stream;
+  Stream<List<DayOfWeek>> get dayOfWeek => _dayOfWeekList.stream;
 
   Function(List<int>) get updateTimeList => _timeList.sink.add;
-  Function(List<WeekOfDay>) get updateWeekOfDayList => _weekOfDayList.sink.add;
+  Function(List<DayOfWeek>) get updateDayOfWeekList => _dayOfWeekList.sink.add;
 
   List<int> get currentTimeList => _timeList.value;
-  List<WeekOfDay> get currentWeekOfDay => _weekOfDayList.value;
+  List<DayOfWeek> get currentDayOfWeek => _dayOfWeekList.value;
 
   void removeTimeList(
       int startHour, int endHour, List<TimeNPlaceData> timeNPlaceData) {
-    int hour = max(startHour, endHour);
-    if (hour <= DEFAULT_TIME_LIST_LENGTH) {
-      return;
-    }
+    int minHour = min(startHour, endHour);
+    int maxHour = max(startHour, endHour);
+    bool minCheck = false;
+    bool maxCheck = false;
 
-    bool isExist = false;
-    int largestHour = 0;
+    if (minHour >= DEFAULT_TIME_LIST_FIRST) {
+      minCheck = true;
+    }
+    if (maxHour <= DEFAULT_TIME_LIST_LAST) {
+      maxCheck = true;
+    }
+    if (minCheck && maxCheck) return;
+
+    bool isSmallExist = false;
+    bool isLargeExist = false;
+    int largestHour = DEFAULT_TIME_LIST_LAST;
+    int smallestHour = DEFAULT_TIME_LIST_FIRST;
 
     for (int i = 0; i < timeNPlaceData.length; i++) {
-      if (max(timeNPlaceData[i].startHour, timeNPlaceData[i].endHour) >= hour) {
-        isExist = true;
-        break;
+      if (min(timeNPlaceData[i].startHour, timeNPlaceData[i].endHour) <=
+          minHour) {
+        isSmallExist = true;
+      } else {
+        smallestHour =
+            min(timeNPlaceData[i].startHour, timeNPlaceData[i].endHour);
+      }
+
+      if (max(timeNPlaceData[i].startHour, timeNPlaceData[i].endHour) >=
+          maxHour) {
+        isLargeExist = true;
       } else {
         largestHour =
             max(timeNPlaceData[i].startHour, timeNPlaceData[i].endHour);
       }
     }
 
-    if (isExist) {
-      return;
-    } else {
-      List<int> currentList = currentTimeList;
+    List<int> currentList = currentTimeList;
+    if (!isSmallExist) {
+      smallestHour = (smallestHour >= DEFAULT_TIME_LIST_FIRST)
+          ? DEFAULT_TIME_LIST_FIRST
+          : smallestHour;
+
+      for (int i = (smallestHour - minHour); i >= 1; i--) {
+        currentList.removeAt(0);
+      }
+    }
+
+    if (!isLargeExist) {
       largestHour = (largestHour <= DEFAULT_TIME_LIST_LAST)
           ? DEFAULT_TIME_LIST_LAST
           : largestHour;
 
-      for (int i = (hour - largestHour); i >= 1; i--) {
+      for (int i = (maxHour - largestHour); i >= 1; i--) {
         currentList.removeLast();
       }
-
-      updateTimeList(currentList);
     }
+
+    updateTimeList(currentList);
   }
 
   void addTimeList(int startHour, int endHour) {
-    int hour = max(startHour, endHour);
+    int maxHour = max(startHour, endHour);
+    int minHour = min(startHour, endHour);
+    List<int> currentList = currentTimeList;
 
-    if (hour > currentTimeList.last) {
-      List<int> currentList = currentTimeList;
+    if (minHour < currentTimeList.first) {
+      int currentFirst = currentList.first;
+
+      for (int i = 1; i <= currentFirst - minHour; i++) {
+        currentList.insert(0, currentList.first - 1);
+      }
+    }
+
+    if (maxHour > currentList.last) {
       int currentLast = currentList.last;
 
-      for (int i = 1; i <= hour - currentLast; i++) {
+      for (int i = 1; i <= maxHour - currentLast; i++) {
         currentList.add(currentList.last + 1);
       }
-
-      updateTimeList(currentList);
     }
+
+    updateTimeList(currentList);
   }
 
-  void removeWeekOfDay(
-      int weekOfDayIndex, List<TimeNPlaceData> timeNPlaceData) {
-    if (weekOfDayIndex <= DEFAULT_WEEK_OF_DAY_LIST_LENGTH - 1) {
+  void removeDayOfWeek(
+      int dayOfWeekIndex, List<TimeNPlaceData> timeNPlaceData) {
+    if (dayOfWeekIndex <= DEFAULT_WEEK_OF_DAY_LIST_LENGTH - 1) {
       return;
     }
 
@@ -188,41 +275,41 @@ class EverytimeUserBloc {
     int largestIndex = 0;
 
     for (int i = 0; i < timeNPlaceData.length; i++) {
-      if (timeNPlaceData[i].weekOfDay.index >=
-          WeekOfDay.getByIndex(weekOfDayIndex).index) {
+      if (timeNPlaceData[i].dayOfWeek.index >=
+          DayOfWeek.getByIndex(dayOfWeekIndex).index) {
         isExist = true;
         break;
       } else {
-        largestIndex = WeekOfDay.getByWeekOfDay(timeNPlaceData[i].weekOfDay);
+        largestIndex = DayOfWeek.getByDayOfWeek(timeNPlaceData[i].dayOfWeek);
       }
     }
 
     if (isExist) {
       return;
     } else {
-      List<WeekOfDay> currentList = currentWeekOfDay;
+      List<DayOfWeek> currentList = currentDayOfWeek;
       largestIndex = (largestIndex <= DEFAULT_WEEK_OF_DAY_LIST_LENGTH - 1)
           ? DEFAULT_WEEK_OF_DAY_LIST_LENGTH - 1
           : largestIndex;
 
-      for (int i = (weekOfDayIndex - largestIndex); i >= 1; i--) {
+      for (int i = (dayOfWeekIndex - largestIndex); i >= 1; i--) {
         currentList.removeLast();
       }
 
-      updateWeekOfDayList(currentList);
+      updateDayOfWeekList(currentList);
     }
   }
 
-  void addWeekOfDay(int weekOfDayIndex) {
-    if (weekOfDayIndex > currentWeekOfDay.length - 1) {
-      List<WeekOfDay> currentList = currentWeekOfDay;
+  void addDayOfWeek(int dayOfWeekIndex) {
+    if (dayOfWeekIndex > currentDayOfWeek.length - 1) {
+      List<DayOfWeek> currentList = currentDayOfWeek;
       int currentLength = currentList.length;
 
-      for (int i = 1; i <= weekOfDayIndex - (currentLength - 1); i++) {
-        currentList.add(WeekOfDay.getByIndex(currentLength - 1 + i));
+      for (int i = 1; i <= dayOfWeekIndex - (currentLength - 1); i++) {
+        currentList.add(DayOfWeek.getByIndex(currentLength - 1 + i));
       }
 
-      updateWeekOfDayList(currentList);
+      updateDayOfWeekList(currentList);
     }
   }
 
@@ -457,6 +544,8 @@ class EverytimeUserBloc {
   Stream<bool> get isShowingKeyboard => _isShowingKeyboard.stream;
   Function(bool) get updateIsShowingKeyboard => _isShowingKeyboard.sink.add;
 
+  bool get currentIsShowingKeyboard => _isShowingKeyboard.value;
+
   Stream<String> get termString => _termString.stream;
   void updateTermString() {
     DateTime now = DateTime.now();
@@ -479,7 +568,8 @@ class EverytimeUserBloc {
 
   //****************************************************************************************************
   void dispose() {
-    _userName.close();
+    _name.close();
+    _univ.close();
 
     //****************************************************************************************************
     for (int i = 0; i < _timeTableList.value.length; i++) {
@@ -489,7 +579,7 @@ class EverytimeUserBloc {
     _selectedTimeTable.close();
 
     _timeList.close();
-    _weekOfDayList.close();
+    _dayOfWeekList.close();
 
     //****************************************************************************************************
 

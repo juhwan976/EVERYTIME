@@ -96,6 +96,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
 
     // 이하는 테스트용 구문
     _userBloc.initGradeCalTest();
+    _userBloc.updateUniv('에타대학');
   }
 
   @override
@@ -146,6 +147,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
               children: [
                 HomePage(
                   scrollController: _homeScrollController,
+                  userBloc: _userBloc,
                 ),
                 TimeTablePage(
                   scrollController: _timeTableScrollController,

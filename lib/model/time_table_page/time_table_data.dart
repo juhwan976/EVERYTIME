@@ -5,13 +5,13 @@ class TimeTableData {
   // 대학
   final String univ;
   // 교수
-  final String prof;
+  final String? prof;
   // 요일, 장소, 시간 리스트
   final List<TimeNPlaceData> dates;
   // 전공
-  final String major;
+  final String? major;
   // 들을 수 있는 학년
-  final List<int> year;
+  final List<int>? year;
   // 과목 이름
   final String subjectName;
   // 과목 종류
@@ -22,10 +22,10 @@ class TimeTableData {
 
   TimeTableData({
     this.univ = '에타대학',
-    this.prof = '에타교수',
+    this.prof,
     required this.dates,
-    required this.major,
-    required this.year,
+    this.major,
+    this.year,
     required this.subjectName,
     this.type = SubjectType.libralArtsSelect,
     this.subjectCode = '000000-000',

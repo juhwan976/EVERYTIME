@@ -10,6 +10,10 @@ class AddDirectBloc {
       _timeNPlaceDataList.sink.add;
   List<TimeNPlaceData> get currentTimeNPlaceData => _timeNPlaceDataList.value;
 
+  void resetTimeNPlaceData() {
+    _updateTimeNPlaceData([]);
+  }
+
   void updateTimeNPlaceData(
     int index, {
     String? place,
@@ -17,21 +21,21 @@ class AddDirectBloc {
     int? startMinute,
     int? endHour,
     int? endMinute,
-    WeekOfDay? weekOfDay,
+    DayOfWeek? dayOfWeek,
   }) {
     if (place != null ||
         startHour != null ||
         startMinute != null ||
         endHour != null ||
         endMinute != null ||
-        weekOfDay != null) {
+        dayOfWeek != null) {
       List<TimeNPlaceData> temp = _timeNPlaceDataList.value;
       if (place != null) temp[index].place = place;
       if (startHour != null) temp[index].startHour = startHour;
       if (startMinute != null) temp[index].startMinute = startMinute;
       if (endHour != null) temp[index].endHour = endHour;
       if (endMinute != null) temp[index].endMinute = endMinute;
-      if (weekOfDay != null) temp[index].weekOfDay = weekOfDay;
+      if (dayOfWeek != null) temp[index].dayOfWeek = dayOfWeek;
 
       _updateTimeNPlaceData(temp);
     }
@@ -49,7 +53,7 @@ class AddDirectBloc {
     int? startMinute,
     int? endHour,
     int? endMinute,
-    WeekOfDay? weekOfDay,
+    DayOfWeek? dayOfWeek,
   }) {
     _updateTimeNPlaceData([
       ...currentTimeNPlaceData,

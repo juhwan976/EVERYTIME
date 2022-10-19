@@ -1,7 +1,7 @@
 import 'package:everytime/model/enums.dart';
 
 class TimeNPlaceData {
-  WeekOfDay weekOfDay;
+  DayOfWeek dayOfWeek;
   int startHour;
   int startMinute;
   int endHour;
@@ -9,7 +9,7 @@ class TimeNPlaceData {
   String place;
 
   TimeNPlaceData({
-    this.weekOfDay = WeekOfDay.mon,
+    this.dayOfWeek = DayOfWeek.mon,
     this.startHour = 9,
     this.startMinute = 0,
     this.endHour = 10,
