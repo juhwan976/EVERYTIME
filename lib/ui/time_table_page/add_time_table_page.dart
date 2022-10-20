@@ -18,6 +18,8 @@ class AddTimeTablePage extends StatefulWidget {
   State<AddTimeTablePage> createState() => _AddTimeTablePageState();
 }
 
+//TODO: 시간표 시간 입력하면 끝나는 시간 기준으로 시간표 스크롤 옮기기
+
 class _AddTimeTablePageState extends State<AddTimeTablePage> {
   void _routeAddDirectPage(BuildContext context) {
     Navigator.of(context).push(

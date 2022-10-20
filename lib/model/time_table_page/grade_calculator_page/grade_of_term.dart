@@ -6,27 +6,35 @@ class GradeOfTerm {
   GradeOfTerm({
     required this.term,
   });
-  // 학기 이름
+
+  /// 학기 이름
   final String term;
-  // 학점 * 점수의 총합
+
+  /// 학점 * 점수의 총합
   final _totalGrade = BehaviorSubject<double>.seeded(0.0);
-  // P 과목 학점을 제외한 모든 학점
+
+  /// P 과목 학점을 제외한 모든 학점
   final _totalCredit = BehaviorSubject<int>.seeded(0);
-  // 전공 과목의 학점 * 점수의 총합
+
+  /// 전공 과목의 학점 * 점수의 총합
   final _majorGrade = BehaviorSubject<double>.seeded(0.0);
-  // 전공 과목의 P 과목 학점을 제외한 모든 학점
+
+  /// 전공 과목의 P 과목 학점을 제외한 모든 학점
   final _majorCredit = BehaviorSubject<int>.seeded(0);
-  // P 과목 학점
+
+  /// P 과목 학점
   final _pCredit = BehaviorSubject<int>.seeded(0);
 
-  // 평점
+  /// 평점
   final _totalGradeAve = BehaviorSubject<double>.seeded(0.0);
-  // 전공 평점
+
+  /// 전공 평점
   final _majorGradeAve = BehaviorSubject<double>.seeded(0.0);
-  // 취득 학점
+
+  /// 취득 학점
   final _creditAmount = BehaviorSubject<int>.seeded(0);
 
-  // 각종 성적 갯수? 학점?
+  /// 각종 성적 갯수? 학점?
   final List<BehaviorSubject<int>> _gradeAmounts = List.generate(
       GradeType.getGrades().length, (index) => BehaviorSubject.seeded(0));
 
@@ -72,11 +80,11 @@ class GradeOfTerm {
   void _updateCreditAmount(int newTotalCredit, int newPCredit) =>
       _creditAmount.sink.add(newTotalCredit + newPCredit);
 
-  // subjects배열 길이의 기본값
+  /// subjects배열 길이의 기본값
   // ignore: constant_identifier_names
   static const DEFAULT_SUBJECTS_LENGTH = 10;
 
-  // 과목 정보들
+  /// 과목 정보들
   // ignore: prefer_final_fields
   final _subjects = BehaviorSubject<List<SubjectInfo>>.seeded([
     SubjectInfo(),
@@ -90,29 +98,31 @@ class GradeOfTerm {
     SubjectInfo(),
     SubjectInfo(),
   ]);
-  // 임시로 각 성적의 총합을 저장할 공간. 자주 사용하는거 같아서 전역 변수로 선언해줌.
+
+  /// 임시로 각 성적의 총합을 저장할 공간. 자주 사용하는거 같아서 전역 변수로 선언해줌.
   // ignore: prefer_for_elements_to_map_fromiterable, prefer_final_fields
   Map<GradeType, int> _tempGrades = Map.fromIterable(GradeType.getGrades(),
       key: (element) => element, value: (element) => 0);
 
-  // Stream<int> get subjectsLength => _subjectsLength.stream;
-  // int get currentSubjectLength => _subjects.value.length;
-  // Function(int) get _updateSubjectsLength => _subjectsLength.sink.add;
-
-  // SubjectInfo getCurrentSubject(int index) => _subjects.value[index];
   Stream<List<SubjectInfo>> get subjects => _subjects.stream;
   List<SubjectInfo> get currentSubjects => _subjects.value;
   void updateSubjects(List<SubjectInfo> newSubjects) {
     _subjects.sink.add(newSubjects);
   }
 
+  /// 학점계산기 페이지에서 [더 입력하기] 버튼을 눌렀을 경우 실행될 함수.
+  ///
+  /// 현재의 [_subjects]에 새로운 [SubjectInfo]를 추가한다.
   void addSubject() {
     List<SubjectInfo> tempList = currentSubjects;
     tempList.add(SubjectInfo());
     updateSubjects(tempList);
-    // _updateSubjectsLength(_subjects.length);
   }
 
+  /// 학점계산기 페이지에서 다른 학기를 눌렀을 때 실행될 함수
+  ///
+  /// [더 입력하기] 버튼으로 추가된 새로운 [SubjectInfo]들 중에서 값을 입력
+  /// 받지 않은 [SubjectInfo]를 삭제하는 함수.
   void removeEmptySubjects() {
     if (currentSubjects.length == DEFAULT_SUBJECTS_LENGTH) return;
 
@@ -140,6 +150,9 @@ class GradeOfTerm {
     updateSubjects(tempList);
   }
 
+  /// 학점계산기 페이지에서 [초기화] 버튼을 눌렀을 때 실행될 함수
+  ///
+  /// 모든 [더 입력하기] 버튼으로 생성된 [SubjectInfo]를 삭제하는 함수
   void removeAdditionalSubjects() {
     if (currentSubjects.length == DEFAULT_SUBJECTS_LENGTH) return;
     List<SubjectInfo> tempList = currentSubjects;
@@ -149,7 +162,7 @@ class GradeOfTerm {
     updateSubjects(tempList);
   }
 
-  // 성적 업데이트
+  /// 현재 학기의 성적을 최신 값으로 갱신하는 함수
   void updateGrades() {
     double tempTotalGrade = 0.0;
     int tempTotalCredit = 0;
@@ -204,6 +217,20 @@ class GradeOfTerm {
     _updateCreditAmount(tempTotalCredit, tempPCredit);
   }
 
+  /// [_subjects]의 [index] 번째 과목을 갱신하는 함수
+  ///
+  /// inputs
+  /// * [index] : [_subjects]에서 갱신할 [SubjectInfo]가 있는 [index]
+  ///
+  /// inputs(option)
+  /// * [title] : 과목 이름
+  /// * [credit] : 학점
+  /// * [gradeType] : 성적
+  /// * [isPNP] : P 또는 NP 과목 여부
+  /// * [isMajor] : 전공과목 여부
+  ///
+  /// ### [option] 값 들 중 [title]을 제외한 나머지 값들 중 하나라도 [null]이 아닐 경우,
+  /// -> [updateGrades()] 가 실행된다.
   void updateSubject(
     int index, {
     String? title,
@@ -218,14 +245,15 @@ class GradeOfTerm {
     if (isPNP != null) currentSubjects[index].isPNP = isPNP;
     if (isMajor != null) currentSubjects[index].isMajor = isMajor;
 
-    if (credit != null || gradeType != null || isPNP != null) {
-      updateGrades();
-    } else if (isMajor != null) {
-      updateSubjects(_subjects.value);
+    if (credit != null ||
+        gradeType != null ||
+        isPNP != null ||
+        isMajor != null) {
       updateGrades();
     }
   }
 
+  /// [_subjects]의 [index]에 있는 [SubjectInfo]를 초기값으로 되돌리는 함수.
   void setDefault(int index) {
     currentSubjects[index].title = '';
     currentSubjects[index].credit = 0;

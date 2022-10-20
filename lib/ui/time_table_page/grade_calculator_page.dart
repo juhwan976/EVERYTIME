@@ -16,6 +16,42 @@ import 'package:rxdart/subjects.dart';
 import 'package:scrolls_to_top/scrolls_to_top.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 
+/// ### 문제점
+/// GradeType은 수정하는 과정에서 똑같이 일반 변수를 수정해도 바로 값 갱신이 된다.
+///
+/// 반면 isMajor은 수정하더라도 바로 값 갱신이 안된다.
+///
+/// GradeType의 경우 이 항목을 선택했는지를 판별하는 BehvaiorSubject를 구독중이라서
+/// 그 값의 갱신으로 인해서 항목이 갱신이 된다.
+///
+/// IsMajor의 경우 다른 것을 구독하지 않기 때문에 값 갱신이 안된다.
+///
+/// ### 해결방안
+/// 1. isMajor를 bool?에서 BehaviorSubject<bool>로 변경
+/// 2. isMajor를 보여주는 Checkbox의 onChange안에 setState 를 넣는다.
+///
+/// ### 현재 사용중인 방법
+/// 2번의 setState를 사용중.
+///
+/// 아직 어떤 방법이 더 좋은지 잘 모르겠다.
+///
+/// 하지만 bloc 패턴을 적용중이므로, 만약 statelessWidget을 선언했다면 강제적으로
+/// 1번방법을 사용했을 것 같지만, 현재는 다크모드 때문에 StatefulsWidget을 사용중이다.
+///
+/// BehaviorSubject에 들어가는 값이 배열이고, 그 안에 일반 변수가 있다면,
+/// 그 값을 갱신해도 다른 구독중인 아이들에게는 알림이 가지 않는다
+///
+/// 강제로 현재값을 새로 갱신해주면 사용가능.
+///
+/// ### 개인적인 생각
+/// 얼마전에 BehaviorSubject 안에 BehaviorSubject가 있는게 이상하다고
+/// 생각해서 SubjectInfo의 구조를 변경했는데 이런 경우가 있을 줄은 알았지만,
+/// 막상 진짜로 당해보니 BehaviorSubject 안에 다른 BehaviorSubject가 있다는게
+/// 이상한 일이 아닐수도 있다는 생각이 들었다.
+///
+/// 어쩌면 당연한 일이 아닐까?
+///
+/// 다음번에 비슷한 경우가 있다면, 그때는 망설이지말자.
 class GradeCalculatorPage extends StatefulWidget {
   const GradeCalculatorPage({
     Key? key,
@@ -359,10 +395,20 @@ class _GradeCalculatorPageState extends State<GradeCalculatorPage> {
                       ),
                       borderRadius: BorderRadius.circular(5),
                     ),
+                    // onPressed: () {
+                    //   widget.userBloc.getTerm(currentTermIndex).updateSubject(
+                    //       currentIndex - 1,
+                    //       isMajor: !subjectsSnapshot
+                    //           .data![currentIndex - 1].isMajor);
+
+                    //   widget.userBloc.updateData();
+                    // },
                     onChanged: (newValue) {
                       widget.userBloc
                           .getTerm(currentTermIndex)
-                          .updateSubject(currentIndex - 1, isMajor: newValue);
+                          .updateSubject(currentIndex - 1, isMajor: newValue!);
+
+                      setState(() {});
 
                       widget.userBloc.updateData();
                     },

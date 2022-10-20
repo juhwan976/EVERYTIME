@@ -18,6 +18,7 @@ class TimeTableChart extends StatelessWidget {
     required this.startHour,
     required this.timeList,
     required this.dayOfWeekList,
+    this.scrollController,
   }) : super(key: key);
 
   final List<int> timeList;
@@ -26,6 +27,7 @@ class TimeTableChart extends StatelessWidget {
   final List<TimeNPlaceData>? shadowDataList;
   final EverytimeUserBloc userBloc;
   final bool isActivateButton;
+  final ScrollController? scrollController;
 
   final int startHour;
 

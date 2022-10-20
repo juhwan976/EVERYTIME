@@ -1,4 +1,5 @@
 import 'dart:developer';
+import 'dart:math';
 
 import 'package:everytime/bloc/add_direct_bloc.dart';
 import 'package:everytime/bloc/everytime_user_bloc.dart';
@@ -8,6 +9,7 @@ import 'package:everytime/component/custom_picker_modal_bottom_sheet.dart';
 import 'package:everytime/component/time_table_page/time_table_chart.dart';
 import 'package:everytime/global_variable.dart';
 import 'package:everytime/model/enums.dart';
+import 'package:everytime/model/time_table_page/time_n_place_data.dart';
 import 'package:everytime/model/time_table_page/time_table_data.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -27,8 +29,44 @@ class AddDirectPage extends StatefulWidget {
 class _AddDirectPageState extends State<AddDirectPage> {
   final _subjectNameController = TextEditingController();
   final _profNameController = TextEditingController();
+  final _timeTableScrollController = ScrollController();
+
+  late final int _lastDayOfWeekIndex;
+  late final int _lastStartHour;
+  late final int _lastEndHour;
 
   final _addDirectBloc = AddDirectBloc();
+
+  double _getScrollOffsetY(TimeNPlaceData data) {
+    DateTime startTime = DateTime(1970, 1, 1, data.endHour, data.endMinute);
+    DateTime endTime =
+        DateTime(1970, 1, 1, widget.userBloc.currentTimeList[0], 0);
+    int diff = startTime.difference(endTime).inMinutes;
+
+    double tempOffset = (appHeight * diff / 5 * 0.00483);
+
+    return (tempOffset - appHeight * 0.28) + appHeight * 0.072;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    _lastDayOfWeekIndex = widget.userBloc.currentDayOfWeek.length - 1;
+    _lastStartHour = widget.userBloc.currentTimeList[0];
+    _lastEndHour = widget.userBloc.currentTimeList.last;
+  }
+
+  @override
+  dispose() {
+    super.dispose();
+
+    _subjectNameController.dispose();
+    _profNameController.dispose();
+    _timeTableScrollController.dispose();
+
+    _addDirectBloc.dispose();
+  }
 
   void _buildSelectTimeBottomSheet(BuildContext context, int currentIndex) {
     showModalBottomSheet(
@@ -92,6 +130,21 @@ class _AddDirectPageState extends State<AddDirectPage> {
                 endHour: endTime.hour,
                 endMinute: endTime.minute,
               );
+
+              if (_timeTableScrollController.hasClients) {
+                _timeTableScrollController.animateTo(
+                  _getScrollOffsetY(
+                    TimeNPlaceData(
+                      startHour: startTime.hour,
+                      startMinute: startTime.minute,
+                      endHour: endTime.hour,
+                      endMinute: endTime.minute,
+                    ),
+                  ),
+                  duration: const Duration(milliseconds: 200),
+                  curve: Curves.linear,
+                );
+              }
             }
           },
           picker: Container(
@@ -197,8 +250,8 @@ class _AddDirectPageState extends State<AddDirectPage> {
               onPressed: () {
                 Navigator.pop(dialogContext);
 
-                DayOfWeek tempDayOfWeek = _addDirectBloc
-                    .currentTimeNPlaceData[currentIndex - 1].dayOfWeek;
+                int tempDayOfWeek = DayOfWeek.getByDayOfWeek(_addDirectBloc
+                    .currentTimeNPlaceData[currentIndex - 1].dayOfWeek);
                 int tempStartHour = _addDirectBloc
                     .currentTimeNPlaceData[currentIndex - 1].startHour;
                 int tempEndHour = _addDirectBloc
@@ -206,13 +259,27 @@ class _AddDirectPageState extends State<AddDirectPage> {
 
                 _addDirectBloc.removeTimeNPlaceData(currentIndex - 1);
                 widget.userBloc.removeDayOfWeek(
-                  DayOfWeek.getByDayOfWeek(tempDayOfWeek),
-                  _addDirectBloc.currentTimeNPlaceData,
+                  tempDayOfWeek,
+                  [
+                    ..._addDirectBloc.currentTimeNPlaceData,
+                    TimeNPlaceData(
+                      startHour: _lastStartHour,
+                      endHour: _lastEndHour,
+                      dayOfWeek: DayOfWeek.getByIndex(_lastDayOfWeekIndex),
+                    ),
+                  ],
                 );
                 widget.userBloc.removeTimeList(
                   tempStartHour,
                   tempEndHour,
-                  _addDirectBloc.currentTimeNPlaceData,
+                  [
+                    ..._addDirectBloc.currentTimeNPlaceData,
+                    TimeNPlaceData(
+                      startHour: _lastStartHour,
+                      endHour: _lastEndHour,
+                      dayOfWeek: DayOfWeek.getByIndex(_lastDayOfWeekIndex),
+                    ),
+                  ],
                 );
               },
             ),
@@ -330,6 +397,15 @@ class _AddDirectPageState extends State<AddDirectPage> {
                 ),
               ),
               onPressed: () {
+                if (_timeTableScrollController.hasClients) {
+                  _timeTableScrollController.animateTo(
+                    _getScrollOffsetY(
+                      TimeNPlaceData(),
+                    ),
+                    duration: const Duration(milliseconds: 200),
+                    curve: Curves.linear,
+                  );
+                }
                 _addDirectBloc.addTimeNPlaceData();
               },
             ),
@@ -469,6 +545,7 @@ class _AddDirectPageState extends State<AddDirectPage> {
   Widget _buildTimeTableChart(BuildContext context) {
     return ListView(
       padding: EdgeInsets.zero,
+      controller: _timeTableScrollController,
       physics: const ClampingScrollPhysics(),
       children: [
         StreamBuilder(
@@ -513,16 +590,6 @@ class _AddDirectPageState extends State<AddDirectPage> {
   }
 
   @override
-  dispose() {
-    super.dispose();
-
-    _subjectNameController.dispose();
-    _profNameController.dispose();
-
-    _addDirectBloc.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
@@ -557,7 +624,43 @@ class _AddDirectPageState extends State<AddDirectPage> {
                           color: Theme.of(context).highlightColor,
                         ),
                         onPressed: () {
-                          _addDirectBloc.resetTimeNPlaceData();
+                          for (int i =
+                                  _addDirectBloc.currentTimeNPlaceData.length -
+                                      1;
+                              i >= 0;
+                              i--) {
+                            DayOfWeek tempDayOfWeek = _addDirectBloc
+                                .currentTimeNPlaceData[i].dayOfWeek;
+                            int tempStartHour = _addDirectBloc
+                                .currentTimeNPlaceData[i].startHour;
+                            int tempEndHour =
+                                _addDirectBloc.currentTimeNPlaceData[i].endHour;
+
+                            _addDirectBloc.removeTimeNPlaceData(i);
+                            widget.userBloc.removeDayOfWeek(
+                              DayOfWeek.getByDayOfWeek(tempDayOfWeek),
+                              _addDirectBloc.currentTimeNPlaceData,
+                            );
+                            widget.userBloc.removeTimeList(
+                              tempStartHour,
+                              tempEndHour,
+                              _addDirectBloc.currentTimeNPlaceData,
+                            );
+                          }
+
+                          //TODO: 이런식으로 써도 작동하게 하는게 더 좋을 것 같다.
+
+                          // _addDirectBloc.resetTimeNPlaceData();
+                          // widget.userBloc.removeDayOfWeek(
+                          //   0,
+                          //   [],
+                          // );
+                          // widget.userBloc.removeTimeList(
+                          //   9,
+                          //   10,
+                          //   [],
+                          // );
+
                           widget.userBloc.updateIsShowingKeyboard(false);
                           Navigator.pop(context);
                         },
@@ -675,11 +778,11 @@ class _AddDirectPageState extends State<AddDirectPage> {
                           widget.userBloc.currentSelectedTimeTable!
                               .addTimeTableData(tempData);
 
-                          setState(() {
-                            _profNameController.text = '';
-                            _subjectNameController.text = '';
-                            _addDirectBloc.resetTimeNPlaceData();
-                          });
+                          _profNameController.text = '';
+                          _subjectNameController.text = '';
+                          _addDirectBloc.resetTimeNPlaceData();
+
+                          Navigator.pop(context);
 
                           //TODO: 전체 시간표 배열에서도 업데이트하는 구문 필요함.
 
