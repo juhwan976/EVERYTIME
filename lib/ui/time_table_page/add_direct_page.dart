@@ -68,6 +68,49 @@ class _AddDirectPageState extends State<AddDirectPage> {
     _addDirectBloc.dispose();
   }
 
+  void _removeShadow() {
+    int tempDayOfWeekIndex = widget.userBloc.defaultDayOfWeekListLast;
+    int tempStartHour = widget.userBloc.defaultTimeListFirst;
+    int tempEndHour = widget.userBloc.defaultTimeListLast;
+
+    for (TimeNPlaceData dates in _addDirectBloc.currentTimeNPlaceData) {
+      if (DayOfWeek.getByDayOfWeek(dates.dayOfWeek) > tempDayOfWeekIndex) {
+        tempDayOfWeekIndex = DayOfWeek.getByDayOfWeek(dates.dayOfWeek);
+      }
+
+      if (dates.startHour < tempStartHour) {
+        tempStartHour = dates.startHour;
+      }
+
+      if (dates.endHour > tempEndHour) {
+        tempEndHour = dates.endHour;
+      }
+    }
+
+    _addDirectBloc.resetTimeNPlaceData();
+    widget.userBloc.removeDayOfWeek(
+      tempDayOfWeekIndex,
+      [
+        TimeNPlaceData(
+          dayOfWeek: DayOfWeek.getByIndex(_lastDayOfWeekIndex),
+          startHour: _lastStartHour,
+          endHour: _lastEndHour,
+        ),
+      ],
+    );
+    widget.userBloc.removeTimeList(
+      tempStartHour,
+      tempEndHour,
+      [
+        TimeNPlaceData(
+          dayOfWeek: DayOfWeek.getByIndex(_lastDayOfWeekIndex),
+          startHour: _lastStartHour,
+          endHour: _lastEndHour,
+        ),
+      ],
+    );
+  }
+
   void _buildSelectTimeBottomSheet(BuildContext context, int currentIndex) {
     showModalBottomSheet(
       context: context,
@@ -624,42 +667,7 @@ class _AddDirectPageState extends State<AddDirectPage> {
                           color: Theme.of(context).highlightColor,
                         ),
                         onPressed: () {
-                          for (int i =
-                                  _addDirectBloc.currentTimeNPlaceData.length -
-                                      1;
-                              i >= 0;
-                              i--) {
-                            DayOfWeek tempDayOfWeek = _addDirectBloc
-                                .currentTimeNPlaceData[i].dayOfWeek;
-                            int tempStartHour = _addDirectBloc
-                                .currentTimeNPlaceData[i].startHour;
-                            int tempEndHour =
-                                _addDirectBloc.currentTimeNPlaceData[i].endHour;
-
-                            _addDirectBloc.removeTimeNPlaceData(i);
-                            widget.userBloc.removeDayOfWeek(
-                              DayOfWeek.getByDayOfWeek(tempDayOfWeek),
-                              _addDirectBloc.currentTimeNPlaceData,
-                            );
-                            widget.userBloc.removeTimeList(
-                              tempStartHour,
-                              tempEndHour,
-                              _addDirectBloc.currentTimeNPlaceData,
-                            );
-                          }
-
-                          //TODO: 이런식으로 써도 작동하게 하는게 더 좋을 것 같다.
-
-                          // _addDirectBloc.resetTimeNPlaceData();
-                          // widget.userBloc.removeDayOfWeek(
-                          //   0,
-                          //   [],
-                          // );
-                          // widget.userBloc.removeTimeList(
-                          //   9,
-                          //   10,
-                          //   [],
-                          // );
+                          _removeShadow();
 
                           widget.userBloc.updateIsShowingKeyboard(false);
                           Navigator.pop(context);

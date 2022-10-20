@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:everytime/bloc/everytime_user_bloc.dart';
 import 'package:everytime/component/custom_button_modal_bottom_sheet.dart';
 import 'package:everytime/component/custom_cupertino_alert_dialog.dart';
@@ -110,30 +112,10 @@ class TimeTableChart extends StatelessWidget {
               onPressed: () {
                 // TODO: 전체 시간표 목록 갱신해야함.
 
-                for (int i = timeTableData[currentIndex].dates.length - 1;
-                    i >= 0;
-                    i--) {
-                  DayOfWeek tempDayOfWeek =
-                      timeTableData[currentIndex].dates[i].dayOfWeek;
-                  int tempStartHour =
-                      timeTableData[currentIndex].dates[i].startHour;
-                  int tempEndHour =
-                      timeTableData[currentIndex].dates[i].endHour;
-
-                  timeTableData[currentIndex].dates.removeAt(i);
-                  userBloc.removeDayOfWeek(
-                    DayOfWeek.getByDayOfWeek(tempDayOfWeek),
-                    timeTableData[currentIndex].dates,
-                  );
-                  userBloc.removeTimeList(
-                    tempStartHour,
-                    tempEndHour,
-                    timeTableData[currentIndex].dates,
-                  );
-                }
-
-                userBloc.currentSelectedTimeTable!
-                    .removeTimeTableData(currentIndex);
+                userBloc.removeTimeTableDataAt(
+                  currentIndex,
+                  timeTableData,
+                );
 
                 Navigator.pop(dialogContext);
               },

@@ -52,6 +52,74 @@ class EverytimeUserBloc {
   List<TimeTable> get currentTimeTableList => _timeTableList.value;
   TimeTable? get currentSelectedTimeTable => _selectedTimeTable.value;
 
+  void removeTimeTableDataAt(
+    int currentIndex,
+    List<TimeTableData> timeTableData,
+  ) {
+    int tempDayOfWeekIndex = defaultDayOfWeekListLast;
+    int tempStartHour = defaultTimeListFirst;
+    int tempEndHour = defaultTimeListLast;
+
+    int removeDayOfWeekIndex = defaultDayOfWeekListLast;
+    int removeStartHour = defaultTimeListFirst;
+    int removeEndHour = defaultTimeListLast;
+
+    for (int i = 0; i < timeTableData.length; i++) {
+      for (TimeNPlaceData dates in timeTableData[i].dates) {
+        if (i == currentIndex) {
+          if (removeDayOfWeekIndex <
+              DayOfWeek.getByDayOfWeek(dates.dayOfWeek)) {
+            removeDayOfWeekIndex = DayOfWeek.getByDayOfWeek(dates.dayOfWeek);
+          }
+
+          if (removeStartHour > dates.startHour) {
+            removeStartHour = dates.startHour;
+          }
+
+          if (removeEndHour < dates.endHour) {
+            removeEndHour = dates.endHour;
+          }
+        } else {
+          if (tempDayOfWeekIndex < DayOfWeek.getByDayOfWeek(dates.dayOfWeek)) {
+            tempDayOfWeekIndex = DayOfWeek.getByDayOfWeek(dates.dayOfWeek);
+          }
+
+          if (tempStartHour > dates.startHour) {
+            tempStartHour = dates.startHour;
+          }
+
+          if (tempEndHour < dates.endHour) {
+            tempEndHour = dates.endHour;
+          }
+        }
+      }
+    }
+
+    currentSelectedTimeTable!.removeTimeTableData(currentIndex);
+
+    removeDayOfWeek(
+      removeDayOfWeekIndex,
+      [
+        TimeNPlaceData(
+          dayOfWeek: DayOfWeek.getByIndex(tempDayOfWeekIndex),
+          startHour: tempStartHour,
+          endHour: tempEndHour,
+        ),
+      ],
+    );
+    removeTimeList(
+      removeStartHour,
+      removeEndHour,
+      [
+        TimeNPlaceData(
+          dayOfWeek: DayOfWeek.getByIndex(tempDayOfWeekIndex),
+          startHour: tempStartHour,
+          endHour: tempEndHour,
+        ),
+      ],
+    );
+  }
+
   /// 시간표를 추가할 때 현재 선택된 시간표의 내용과 겹치는게 있는지 판별
   ///
   /// inputs
@@ -239,21 +307,25 @@ class EverytimeUserBloc {
   ///
   /// ignore: constant_identifier_names
   static const DEFAULT_TIME_LIST_LENGTH = 7;
+  int get defaultTimeListLength => DEFAULT_TIME_LIST_LENGTH;
 
   /// [_timeList]의 [0]의 기본 값
   ///
   /// ignore: constant_identifier_names
   static const DEFAULT_TIME_LIST_FIRST = 9;
+  int get defaultTimeListFirst => DEFAULT_TIME_LIST_FIRST;
 
   /// [_timeList]의 [last]의 기본 값
   ///
   /// ignore: constant_identifier_names
   static const DEFAULT_TIME_LIST_LAST = 15;
+  int get defaultTimeListLast => DEFAULT_TIME_LIST_LAST;
 
   /// [_dayOfWeekList]의 [last]의 기본 값
   ///
   /// ignore: constant_identifier_names
   static const DEFAULT_DAY_OF_WEEK_LIST_LAST = 4;
+  int get defaultDayOfWeekListLast => DEFAULT_DAY_OF_WEEK_LIST_LAST;
 
   /// 시간표의 시간 부분을 저장할 변수
   final _timeList =
