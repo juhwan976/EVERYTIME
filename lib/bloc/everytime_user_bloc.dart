@@ -305,25 +305,25 @@ class EverytimeUserBloc {
 
   /// [_timeList]의 기본 길이 값
   ///
-  /// ignore: constant_identifier_names
+  // ignore: constant_identifier_names
   static const DEFAULT_TIME_LIST_LENGTH = 7;
   int get defaultTimeListLength => DEFAULT_TIME_LIST_LENGTH;
 
   /// [_timeList]의 [0]의 기본 값
   ///
-  /// ignore: constant_identifier_names
+  // ignore: constant_identifier_names
   static const DEFAULT_TIME_LIST_FIRST = 9;
   int get defaultTimeListFirst => DEFAULT_TIME_LIST_FIRST;
 
   /// [_timeList]의 [last]의 기본 값
   ///
-  /// ignore: constant_identifier_names
+  // ignore: constant_identifier_names
   static const DEFAULT_TIME_LIST_LAST = 15;
   int get defaultTimeListLast => DEFAULT_TIME_LIST_LAST;
 
   /// [_dayOfWeekList]의 [last]의 기본 값
   ///
-  /// ignore: constant_identifier_names
+  // ignore: constant_identifier_names
   static const DEFAULT_DAY_OF_WEEK_LIST_LAST = 4;
   int get defaultDayOfWeekListLast => DEFAULT_DAY_OF_WEEK_LIST_LAST;
 
@@ -383,16 +383,22 @@ class EverytimeUserBloc {
           minHour) {
         isSmallExist = true;
       } else {
-        smallestHour =
-            min(timeNPlaceData[i].startHour, timeNPlaceData[i].endHour);
+        if (smallestHour >=
+            min(timeNPlaceData[i].startHour, timeNPlaceData[i].endHour)) {
+          smallestHour =
+              min(timeNPlaceData[i].startHour, timeNPlaceData[i].endHour);
+        }
       }
 
       if (max(timeNPlaceData[i].startHour, timeNPlaceData[i].endHour) >=
           maxHour) {
         isLargeExist = true;
       } else {
-        largestHour =
-            max(timeNPlaceData[i].startHour, timeNPlaceData[i].endHour);
+        if (largestHour <=
+            max(timeNPlaceData[i].startHour, timeNPlaceData[i].endHour)) {
+          largestHour =
+              max(timeNPlaceData[i].startHour, timeNPlaceData[i].endHour);
+        }
       }
     }
 
@@ -589,7 +595,7 @@ class EverytimeUserBloc {
 
   /// 임시로 각 성적의 총합들을 저장할 공간. 자주 용하는거 같아서 전역 변수로 선언해줌.
   ///
-  /// ignore: prefer_for_elements_to_map_fromiterable, prefer_final_fields
+  // ignore: prefer_for_elements_to_map_fromiterable, prefer_final_fields
   Map<GradeType, int> _tempGradesAmount = Map<GradeType, int>.fromIterable(
       GradeType.getGrades(),
       key: (element) => element,
@@ -682,11 +688,14 @@ class EverytimeUserBloc {
         continue;
       }
 
-      tempList.add(BarChartData(
+      tempList.add(
+        BarChartData(
           percent:
               (sortByValue.values.elementAt(i) / _currentCredit.value * 100)
                   .round(),
-          grade: (sortByValue.keys.elementAt(i).data)));
+          grade: (sortByValue.keys.elementAt(i).data),
+        ),
+      );
     }
 
     _percentData.sink.add(tempList);

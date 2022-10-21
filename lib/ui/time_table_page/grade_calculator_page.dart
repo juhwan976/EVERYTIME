@@ -395,14 +395,6 @@ class _GradeCalculatorPageState extends State<GradeCalculatorPage> {
                       ),
                       borderRadius: BorderRadius.circular(5),
                     ),
-                    // onPressed: () {
-                    //   widget.userBloc.getTerm(currentTermIndex).updateSubject(
-                    //       currentIndex - 1,
-                    //       isMajor: !subjectsSnapshot
-                    //           .data![currentIndex - 1].isMajor);
-
-                    //   widget.userBloc.updateData();
-                    // },
                     onChanged: (newValue) {
                       widget.userBloc
                           .getTerm(currentTermIndex)

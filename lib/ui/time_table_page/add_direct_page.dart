@@ -547,6 +547,12 @@ class _AddDirectPageState extends State<AddDirectPage> {
                         onTap: () {
                           widget.userBloc.updateIsShowingKeyboard(true);
                         },
+                        onChanged: (value) {
+                          _addDirectBloc.updateTimeNPlaceData(
+                            index - 1,
+                            place: value,
+                          );
+                        },
                         onSubmitted: (value) {
                           widget.userBloc.updateIsShowingKeyboard(false);
                         },

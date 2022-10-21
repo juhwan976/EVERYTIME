@@ -147,33 +147,76 @@ class TimeTableChart extends StatelessWidget {
                         showModalBottomSheet(
                           context: context,
                           builder: (bottomSheetContext) {
-                            return CustomButtonModalBottomSheet(
-                              buttonList: [
-                                CustomButtonModalBottomSheetButton(
-                                  icon: Icons.chat_outlined,
-                                  title: '강의평',
-                                ),
-                                CustomButtonModalBottomSheetButton(
-                                  icon: Icons.note_add_outlined,
-                                  title: '메모 추가',
-                                ),
-                                CustomButtonModalBottomSheetButton(
-                                  icon: Icons.format_list_bulleted_outlined,
-                                  title: '할일 보기',
-                                ),
-                                CustomButtonModalBottomSheetButton(
-                                  icon: Icons.edit_outlined,
-                                  title: '약칭 지정',
-                                ),
-                                CustomButtonModalBottomSheetButton(
-                                  icon: Icons.delete_outline,
-                                  title: '삭제',
-                                  onPressed: () {
-                                    Navigator.pop(bottomSheetContext);
-                                    _buildRemoveDialog(context, i);
-                                  },
-                                ),
-                              ],
+                            return SizedBox(
+                              height: appHeight * 0.085 +
+                                  (appHeight * 0.06 * 5) +
+                                  paddingBottom +
+                                  appHeight * 0.095,
+                              child: Column(
+                                children: [
+                                  Expanded(
+                                    child: Container(
+                                      alignment: Alignment.topLeft,
+                                      color: Theme.of(context).backgroundColor,
+                                      padding: EdgeInsets.only(
+                                        top: appHeight * 0.035,
+                                        left: appWidth * 0.065,
+                                        right: appWidth * 0.065,
+                                      ),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            timeTableData[i].subjectName,
+                                            style: const TextStyle(
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                          Text(
+                                            timeTableData[i].prof,
+                                            style: const TextStyle(
+                                              fontSize: 17,
+                                            ),
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                  CustomButtonModalBottomSheet(
+                                    buttonList: [
+                                      CustomButtonModalBottomSheetButton(
+                                        icon: Icons.chat_outlined,
+                                        title: '강의평',
+                                      ),
+                                      CustomButtonModalBottomSheetButton(
+                                        icon: Icons.note_add_outlined,
+                                        title: '메모 추가',
+                                      ),
+                                      CustomButtonModalBottomSheetButton(
+                                        icon:
+                                            Icons.format_list_bulleted_outlined,
+                                        title: '할일 보기',
+                                      ),
+                                      CustomButtonModalBottomSheetButton(
+                                        icon: Icons.edit_outlined,
+                                        title: '약칭 지정',
+                                      ),
+                                      CustomButtonModalBottomSheetButton(
+                                        icon: Icons.delete_outline,
+                                        title: '삭제',
+                                        onPressed: () {
+                                          Navigator.pop(bottomSheetContext);
+                                          _buildRemoveDialog(context, i);
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
                             );
                           },
                         );
@@ -190,12 +233,14 @@ class TimeTableChart extends StatelessWidget {
                         style: const TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
+                          fontSize: 14,
                         ),
                       ),
                       Text(
                         data.place,
                         style: const TextStyle(
                           color: Colors.white,
+                          fontSize: 12,
                         ),
                       ),
                     ],
