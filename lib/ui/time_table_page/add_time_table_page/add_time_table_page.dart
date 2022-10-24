@@ -2,7 +2,7 @@ import 'package:everytime/bloc/everytime_user_bloc.dart';
 import 'package:everytime/component/custom_container.dart';
 import 'package:everytime/component/time_table_page/time_table_chart.dart';
 import 'package:everytime/global_variable.dart';
-import 'package:everytime/ui/time_table_page/add_direct_page.dart';
+import 'package:everytime/ui/time_table_page/add_direct_page/add_direct_page.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
