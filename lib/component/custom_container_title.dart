@@ -38,49 +38,51 @@ class CustomContainerTitle extends StatelessWidget {
               ),
             ),
           ),
-          Container(
-            width: (type == CustomContainerTitleType.button)
-                ? appWidth * 0.11
-                : appWidth * 0.19,
-            alignment: Alignment.centerRight,
-            child: MaterialButton(
-              highlightColor: Colors.transparent,
-              splashColor: Colors.transparent,
-              padding: EdgeInsets.only(
-                right: appWidth * 0.05,
-              ),
-              child: (type == CustomContainerTitleType.button)
-                  ? Icon(
-                      buttonIcon,
-                      color: Theme.of(context).highlightColor,
-                    )
-                  : Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        Text(
-                          '더 보기',
-                          style: TextStyle(
-                            color: Theme.of(context).focusColor,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 15,
-                          ),
-                        ),
-                        Icon(
-                          Icons.arrow_forward_ios_rounded,
-                          color: Theme.of(context).focusColor,
-                          size: 13,
-                        ),
-                      ],
+          (type == CustomContainerTitleType.none)
+              ? const SizedBox.shrink()
+              : Container(
+                  width: (type == CustomContainerTitleType.button)
+                      ? appWidth * 0.11
+                      : appWidth * 0.19,
+                  alignment: Alignment.centerRight,
+                  child: MaterialButton(
+                    highlightColor: Colors.transparent,
+                    splashColor: Colors.transparent,
+                    padding: EdgeInsets.only(
+                      right: appWidth * 0.05,
                     ),
-              onPressed: () {
-                onPressed?.call();
-              },
-            ),
-          ),
+                    child: (type == CustomContainerTitleType.button)
+                        ? Icon(
+                            buttonIcon,
+                            color: Theme.of(context).highlightColor,
+                          )
+                        : Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              Text(
+                                '더 보기',
+                                style: TextStyle(
+                                  color: Theme.of(context).focusColor,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 15,
+                                ),
+                              ),
+                              Icon(
+                                Icons.arrow_forward_ios_rounded,
+                                color: Theme.of(context).focusColor,
+                                size: 13,
+                              ),
+                            ],
+                          ),
+                    onPressed: () {
+                      onPressed?.call();
+                    },
+                  ),
+                ),
         ],
       ),
     );
   }
 }
 
-enum CustomContainerTitleType { button, text }
+enum CustomContainerTitleType { button, text, none }

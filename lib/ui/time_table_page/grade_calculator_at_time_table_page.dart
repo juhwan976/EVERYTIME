@@ -6,8 +6,8 @@ import 'package:everytime/global_variable.dart';
 import 'package:everytime/ui/time_table_page/grade_calculator_page/grade_calculator_page.dart';
 import 'package:flutter/material.dart';
 
-class GradeCalculatorTimeTablePage extends StatelessWidget {
-  const GradeCalculatorTimeTablePage({
+class GradeCalculatorAtTimeTablePage extends StatelessWidget {
+  const GradeCalculatorAtTimeTablePage({
     Key? key,
     required this.userBloc,
   }) : super(key: key);

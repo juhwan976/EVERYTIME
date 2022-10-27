@@ -25,20 +25,20 @@ class TimeTable {
 
   Stream<String> get name => _name.stream;
   Function(String) get updateName => _name.sink.add;
+  String get currentName => _name.value;
 
   Stream<List<TimeTableData>> get timeTableData => _timeTableData.stream;
   void _updateTimeTableData(List<TimeTableData> newData) =>
       _timeTableData.sink.add(newData);
+  List<TimeTableData> get currentTimeTableData => _timeTableData.value;
 
   Stream<PrivacyBounds> get privacyBounds => _privacyBounds.stream;
   Function(PrivacyBounds) get updatePrivacyBounds => _privacyBounds.sink.add;
+  PrivacyBounds get currentPrivacyBounds => _privacyBounds.value;
 
   Stream<bool> get isDefault => _isDefault.stream;
   Function(bool) get updateIsDefault => _isDefault.sink.add;
-
-  String get currentName => _name.value;
-  List<TimeTableData> get currentTimeTableData => _timeTableData.value;
-  PrivacyBounds get currentPrivacyBounds => _privacyBounds.value;
+  bool get currentIsDefault => _isDefault.value;
 
   /// 입력받은 [index]의 위치에 있는 [TimeTableData]를 지우는 함수
   ///

@@ -69,6 +69,8 @@ class TimeTableAtTimeTablePage extends StatelessWidget {
       termString: userBloc.currentTermString,
     );
 
+    newTimeTable.updateIsDefault(true);
+
     userBloc.addTimeTableList(newTimeTable);
     userBloc.updateSelectedTimeTable(newTimeTable);
   }

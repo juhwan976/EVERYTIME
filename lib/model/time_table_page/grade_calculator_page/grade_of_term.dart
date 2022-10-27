@@ -106,8 +106,12 @@ class GradeOfTerm {
 
   Stream<List<SubjectInfo>> get subjects => _subjects.stream;
   List<SubjectInfo> get currentSubjects => _subjects.value;
-  void updateSubjects(List<SubjectInfo> newSubjects) {
+  void _updateSubjects(List<SubjectInfo> newSubjects) {
     _subjects.sink.add(newSubjects);
+  }
+
+  void updateSubjects() {
+    _updateSubjects(currentSubjects);
   }
 
   /// 학점계산기 페이지에서 [더 입력하기] 버튼을 눌렀을 경우 실행될 함수.
@@ -116,7 +120,7 @@ class GradeOfTerm {
   void addSubject() {
     List<SubjectInfo> tempList = currentSubjects;
     tempList.add(SubjectInfo());
-    updateSubjects(tempList);
+    _updateSubjects(tempList);
   }
 
   /// 학점계산기 페이지에서 다른 학기를 눌렀을 때 실행될 함수
@@ -147,7 +151,7 @@ class GradeOfTerm {
 
       tempList.removeAt(removeIndexes[i]);
     }
-    updateSubjects(tempList);
+    _updateSubjects(tempList);
   }
 
   /// 학점계산기 페이지에서 [초기화] 버튼을 눌렀을 때 실행될 함수
@@ -159,7 +163,7 @@ class GradeOfTerm {
     for (int i = tempList.length - DEFAULT_SUBJECTS_LENGTH - 1; i >= 0; i--) {
       tempList.removeLast();
     }
-    updateSubjects(tempList);
+    _updateSubjects(tempList);
   }
 
   /// 현재 학기의 성적을 최신 값으로 갱신하는 함수

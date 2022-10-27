@@ -5,11 +5,12 @@ import 'package:everytime/component/custom_appbar_button.dart';
 import 'package:everytime/component/custom_cupertino_alert_dialog.dart';
 import 'package:everytime/component/custom_button_modal_bottom_sheet.dart';
 import 'package:everytime/ui/time_table_page/friend_time_table_at_time_table_page.dart';
-import 'package:everytime/ui/time_table_page/grade_calculator_time_table_page.dart';
+import 'package:everytime/ui/time_table_page/grade_calculator_at_time_table_page.dart';
 import 'package:everytime/ui/time_table_page/time_table_at_time_table_page.dart';
 import 'package:everytime/global_variable.dart';
 import 'package:everytime/model/enums.dart';
-import 'package:everytime/ui/time_table_page/add_time_table_page/add_time_table_page.dart';
+import 'package:everytime/ui/time_table_page/add_subject_page/add_subject_page.dart';
+import 'package:everytime/ui/time_table_page/time_table_list_page/time_table_list_page.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:rxdart/subjects.dart';
@@ -116,10 +117,21 @@ class _TimeTablePageState extends State<TimeTablePage>
                               _buildEditSettingBottomSheet(context),
                         ),
                       ),
-                      CustomAppBarButton(
-                        icon: Icons.format_list_bulleted,
-                        onPressed: () {
-                          //TODO: 시간표 목록 불러오기.
+                      StreamBuilder(
+                        stream: widget.userBloc.timeTableList,
+                        builder: (_, timeTableListSnapshot) {
+                          if (timeTableListSnapshot.hasData) {
+                            return Visibility(
+                              visible: timeTableListSnapshot.data!.isNotEmpty,
+                              child: CustomAppBarButton(
+                                icon: Icons.format_list_bulleted_outlined,
+                                onPressed: () =>
+                                    _routeTimeTableListPage(context),
+                              ),
+                            );
+                          }
+
+                          return const SizedBox.shrink();
                         },
                       ),
                     ],
@@ -141,7 +153,7 @@ class _TimeTablePageState extends State<TimeTablePage>
                       ),
                     ),
                     SliverToBoxAdapter(
-                      child: GradeCalculatorTimeTablePage(
+                      child: GradeCalculatorAtTimeTablePage(
                         userBloc: widget.userBloc,
                       ),
                     ),
@@ -159,7 +171,7 @@ class _TimeTablePageState extends State<TimeTablePage>
     Navigator.of(context).push(
       PageRouteBuilder(
         pageBuilder: ((context, animation, secondaryAnimation) =>
-            AddTimeTablePage(
+            AddSubjectPage(
               userBloc: widget.userBloc,
             )),
         transitionsBuilder: ((context, animation, secondaryAnimation, child) {
@@ -237,6 +249,19 @@ class _TimeTablePageState extends State<TimeTablePage>
           ],
         );
       },
+    );
+  }
+
+  _routeTimeTableListPage(BuildContext context) {
+    Navigator.push(
+      context,
+      CupertinoPageRoute(
+        builder: (BuildContext pageContext) {
+          return TimeTableListPage(
+            userBloc: widget.userBloc,
+          );
+        },
+      ),
     );
   }
 
