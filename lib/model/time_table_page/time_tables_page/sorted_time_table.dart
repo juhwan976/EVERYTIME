@@ -11,6 +11,5 @@ class SortedTimeTable {
 
   SortedTimeTable({
     required this.termString,
-    datas,
   });
 }

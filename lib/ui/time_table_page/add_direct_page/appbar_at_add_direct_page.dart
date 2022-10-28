@@ -1,4 +1,4 @@
-import 'package:everytime/bloc/add_direct_bloc.dart';
+import 'package:everytime/bloc/time_table_page/add_direct_bloc.dart';
 import 'package:everytime/bloc/everytime_user_bloc.dart';
 import 'package:everytime/component/custom_cupertino_alert_dialog.dart';
 import 'package:everytime/component/time_table_page/round_button.dart';

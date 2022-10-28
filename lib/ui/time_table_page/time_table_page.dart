@@ -4,6 +4,7 @@ import 'package:everytime/component/custom_appbar_animation.dart';
 import 'package:everytime/component/custom_appbar_button.dart';
 import 'package:everytime/component/custom_cupertino_alert_dialog.dart';
 import 'package:everytime/component/custom_button_modal_bottom_sheet.dart';
+import 'package:everytime/model/time_table_page/time_table.dart';
 import 'package:everytime/ui/time_table_page/friend_time_table_at_time_table_page.dart';
 import 'package:everytime/ui/time_table_page/grade_calculator_at_time_table_page.dart';
 import 'package:everytime/ui/time_table_page/time_table_at_time_table_page.dart';
@@ -82,12 +83,24 @@ class _TimeTablePageState extends State<TimeTablePage>
             children: [
               //TODO: 학사 일정에 따라서 바뀌도록 하면 좋을 것 같음.
               StreamBuilder(
-                stream: widget.userBloc.termString,
-                builder: (_, termStringSnapshot) {
-                  return CustomAppBarAnimation(
-                    scrollOffsetStream: _scrollOffset.stream,
-                    title: termStringSnapshot.data ?? '',
-                  );
+                stream: widget.userBloc.selectedTimeTable,
+                builder: (_, selectedTimeTableSnapshot) {
+                  if (selectedTimeTableSnapshot.data == null) {
+                    return StreamBuilder(
+                      stream: widget.userBloc.termString,
+                      builder: (_, termStringSnapshot) {
+                        return CustomAppBarAnimation(
+                          scrollOffsetStream: _scrollOffset.stream,
+                          title: termStringSnapshot.data ?? '',
+                        );
+                      },
+                    );
+                  } else {
+                    return CustomAppBarAnimation(
+                      scrollOffsetStream: _scrollOffset.stream,
+                      title: selectedTimeTableSnapshot.data!.termString,
+                    );
+                  }
                 },
               ),
               StreamBuilder(
@@ -449,12 +462,16 @@ class _TimeTablePageState extends State<TimeTablePage>
               padding: EdgeInsets.zero,
               child: const Text('삭제'),
               onPressed: () {
-                //TODO: 현재 학기 내의 다른 시간표가 있으면 그 시간표를 선택.
                 widget.userBloc.removeTimeTableList(
                   widget.userBloc.currentSelectedTimeTable!.termString,
                   widget.userBloc.currentSelectedTimeTable!.currentName,
                 );
-                widget.userBloc.updateSelectedTimeTable(null);
+
+                TimeTable? defaultTimeTable = widget.userBloc
+                    .findTimeTableAtSpecificTerm(
+                        widget.userBloc.currentTermString);
+
+                widget.userBloc.updateSelectedTimeTable(defaultTimeTable);
                 Navigator.pop(dialogContext);
               },
             ),

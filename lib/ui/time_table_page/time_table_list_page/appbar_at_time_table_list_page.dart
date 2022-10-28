@@ -1,3 +1,5 @@
+import 'package:everytime/bloc/everytime_user_bloc.dart';
+import 'package:everytime/bloc/time_table_page/time_table_list_bloc.dart';
 import 'package:everytime/global_variable.dart';
 import 'package:everytime/ui/time_table_page/add_time_table_page/add_time_table_page.dart';
 import 'package:flutter/cupertino.dart';
@@ -7,9 +9,13 @@ class AppBarAtTimeTableListPage extends StatelessWidget {
   AppBarAtTimeTableListPage({
     Key? key,
     required this.pageContext,
+    required this.userBloc,
+    required this.timeTableListBloc,
   }) : super(key: key);
 
   final BuildContext pageContext;
+  final EverytimeUserBloc userBloc;
+  final TimeTableListBloc timeTableListBloc;
 
   final double _buttonWidth = appWidth * 0.15;
 
@@ -52,10 +58,14 @@ class AppBarAtTimeTableListPage extends StatelessWidget {
                 Navigator.push(
                   pageContext,
                   CupertinoPageRoute(
-                      fullscreenDialog: true,
-                      builder: (newPageContext) {
-                        return AddTimeTablePage();
-                      }),
+                    fullscreenDialog: true,
+                    builder: (newPageContext) {
+                      return AddTimeTablePage(
+                        userBloc: userBloc,
+                        timeTableListBloc: timeTableListBloc,
+                      );
+                    },
+                  ),
                 );
               },
             ),

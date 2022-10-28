@@ -51,7 +51,6 @@ class MyApp extends StatelessWidget {
         secondaryHeaderColor: Colors.white54,
         cardColor: const Color.fromRGBO(26, 26, 26, 1),
         focusColor: const Color.fromRGBO(203, 93, 72, 1),
-        textTheme: TextTheme(),
       ),
       themeMode: ThemeMode.system,
       home: const MainPage(),

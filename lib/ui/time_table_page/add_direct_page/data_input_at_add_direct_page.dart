@@ -1,4 +1,4 @@
-import 'package:everytime/bloc/add_direct_bloc.dart';
+import 'package:everytime/bloc/time_table_page/add_direct_bloc.dart';
 import 'package:everytime/bloc/everytime_user_bloc.dart';
 import 'package:everytime/component/custom_cupertino_alert_dialog.dart';
 import 'package:everytime/component/custom_picker_modal_bottom_sheet.dart';
@@ -59,219 +59,223 @@ class DataInputAtAddDirectPage extends StatelessWidget {
       currentLength + 2,
       (index) {
         if (index == 0) {
-          return Container(
-            padding: EdgeInsets.only(
-              left: appWidth * 0.05,
-              right: appWidth * 0.05,
-            ),
-            child: Column(
-              children: [
-                CustomTextField(
-                  controller: subjectNameController,
-                  hintText: '수업명',
-                  isHintBold: true,
-                  onTap: () {
-                    userBloc.updateIsShowingKeyboard(true);
-                  },
-                  onSubmitted: (value) {
-                    userBloc.updateIsShowingKeyboard(false);
-                  },
-                ),
-                Container(
-                  height: 1,
-                  margin: EdgeInsets.only(
-                    bottom: appHeight * 0.0125,
-                  ),
-                  color: Theme.of(context).dividerColor,
-                ),
-                CustomTextField(
-                  controller: profNameController,
-                  hintText: '교수명',
-                  onTap: () {
-                    userBloc.updateIsShowingKeyboard(true);
-                  },
-                  onSubmitted: (value) {
-                    userBloc.updateIsShowingKeyboard(false);
-                  },
-                ),
-                Container(
-                  height: 1,
-                  margin: EdgeInsets.only(
-                    bottom: appHeight * 0.0125,
-                  ),
-                  color: Theme.of(context).dividerColor,
-                ),
-              ],
-            ),
-          );
+          return _buildListViewChildrenFirst(context);
         } else if (index + 1 == currentLength + 2) {
-          return Container(
-            alignment: Alignment.centerLeft,
-            width: appWidth,
-            margin: EdgeInsets.only(
-              left: appWidth * 0.05,
-              right: appWidth * 0.05,
-            ),
-            child: MaterialButton(
-              padding: EdgeInsets.zero,
-              highlightColor: Colors.transparent,
-              splashColor: Colors.transparent,
-              child: Text(
-                '시간 및 장소 추가',
-                style: TextStyle(
-                  color: Theme.of(context).focusColor,
-                  fontSize: 21,
-                ),
-              ),
-              onPressed: () {
-                if (timeTableScrollController.hasClients) {
-                  timeTableScrollController.animateTo(
-                    _getScrollOffsetY(
-                      TimeNPlaceData(),
-                    ),
-                    duration: const Duration(milliseconds: 200),
-                    curve: Curves.linear,
-                  );
-                }
-                addDirectBloc.addTimeNPlaceData();
-              },
-            ),
-          );
+          return _buildListViewChildrenLast(context);
         } else {
-          return Container(
+          return _buildListViewChildrenRemain(context, index);
+        }
+      },
+    );
+  }
+
+  Widget _buildListViewChildrenFirst(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.only(
+        left: appWidth * 0.05,
+        right: appWidth * 0.05,
+      ),
+      child: Column(
+        children: [
+          CustomTextField(
+            controller: subjectNameController,
+            hintText: '수업명',
+            isHintBold: true,
+            onTap: () {
+              userBloc.updateIsShowingKeyboard(true);
+            },
+            onSubmitted: (value) {
+              userBloc.updateIsShowingKeyboard(false);
+            },
+          ),
+          Container(
+            height: 1,
             margin: EdgeInsets.only(
-              left: appWidth * 0.05,
-              right: appWidth * 0.05,
               bottom: appHeight * 0.0125,
             ),
-            child: Column(
-              children: [
-                MaterialButton(
+            color: Theme.of(context).dividerColor,
+          ),
+          CustomTextField(
+            controller: profNameController,
+            hintText: '교수명',
+            onTap: () {
+              userBloc.updateIsShowingKeyboard(true);
+            },
+            onSubmitted: (value) {
+              userBloc.updateIsShowingKeyboard(false);
+            },
+          ),
+          Container(
+            height: 1,
+            margin: EdgeInsets.only(
+              bottom: appHeight * 0.0125,
+            ),
+            color: Theme.of(context).dividerColor,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildListViewChildrenLast(BuildContext context) {
+    return Container(
+      alignment: Alignment.centerLeft,
+      width: appWidth,
+      margin: EdgeInsets.only(
+        left: appWidth * 0.05,
+        right: appWidth * 0.05,
+      ),
+      child: MaterialButton(
+        padding: EdgeInsets.zero,
+        highlightColor: Colors.transparent,
+        splashColor: Colors.transparent,
+        child: Text(
+          '시간 및 장소 추가',
+          style: TextStyle(
+            color: Theme.of(context).focusColor,
+            fontSize: 21,
+          ),
+        ),
+        onPressed: () {
+          if (timeTableScrollController.hasClients) {
+            timeTableScrollController.animateTo(
+              _getScrollOffsetY(
+                TimeNPlaceData(),
+              ),
+              duration: const Duration(milliseconds: 200),
+              curve: Curves.linear,
+            );
+          }
+          addDirectBloc.addTimeNPlaceData();
+        },
+      ),
+    );
+  }
+
+  Widget _buildListViewChildrenRemain(
+    BuildContext context,
+    int index,
+  ) {
+    return Container(
+      margin: EdgeInsets.only(
+        left: appWidth * 0.05,
+        right: appWidth * 0.05,
+        bottom: appHeight * 0.0125,
+      ),
+      child: Column(
+        children: [
+          MaterialButton(
+            padding: EdgeInsets.zero,
+            splashColor: Colors.transparent,
+            highlightColor: Colors.transparent,
+            child: StreamBuilder(
+              stream: addDirectBloc.timeNPlaceData,
+              builder: (_, timeNPlaceDataSnapshot) {
+                if (timeNPlaceDataSnapshot.hasData) {
+                  return Row(
+                    children: [
+                      RichText(
+                        text: TextSpan(
+                          children: [
+                            TextSpan(
+                              text: timeNPlaceDataSnapshot
+                                  .data![index - 1].dayOfWeek.string,
+                            ),
+                            TextSpan(
+                              text: _buildTimeString(
+                                timeNPlaceDataSnapshot
+                                    .data![index - 1].startHour,
+                                timeNPlaceDataSnapshot
+                                    .data![index - 1].startMinute,
+                              ),
+                            ),
+                            const TextSpan(
+                              text: '-',
+                            ),
+                            TextSpan(
+                              text: _buildTimeString(
+                                timeNPlaceDataSnapshot.data![index - 1].endHour,
+                                timeNPlaceDataSnapshot
+                                    .data![index - 1].endMinute,
+                              ),
+                            ),
+                          ],
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Theme.of(context).highlightColor,
+                          ),
+                        ),
+                      ),
+                      Icon(
+                        Icons.keyboard_arrow_down_outlined,
+                        color: Theme.of(context).focusColor,
+                        size: 15,
+                      ),
+                    ],
+                  );
+                }
+
+                return const SizedBox.shrink();
+              },
+            ),
+            onPressed: () {
+              _buildSelectTimeBottomSheet(context, index);
+            },
+          ),
+          Row(
+            children: [
+              Container(
+                height: appHeight * 0.05,
+                width: appWidth * 0.8,
+                padding: EdgeInsets.only(
+                  right: appWidth * 0.02,
+                ),
+                child: CustomTextField(
+                  maxLines: 1,
+                  scrollPadding: EdgeInsets.zero,
+                  isDense: true,
+                  hintText: '장소',
+                  onTap: () {
+                    userBloc.updateIsShowingKeyboard(true);
+                  },
+                  onChanged: (value) {
+                    addDirectBloc.updateTimeNPlaceData(
+                      index - 1,
+                      place: value,
+                    );
+                  },
+                  onSubmitted: (value) {
+                    userBloc.updateIsShowingKeyboard(false);
+                  },
+                ),
+              ),
+              SizedBox(
+                width: appWidth * 0.1,
+                child: MaterialButton(
                   padding: EdgeInsets.zero,
                   splashColor: Colors.transparent,
                   highlightColor: Colors.transparent,
-                  child: StreamBuilder(
-                    stream: addDirectBloc.timeNPlaceData,
-                    builder: (_, timeNPlaceDataSnapshot) {
-                      if (timeNPlaceDataSnapshot.hasData) {
-                        return Row(
-                          children: [
-                            RichText(
-                              text: TextSpan(
-                                children: [
-                                  TextSpan(
-                                    text: timeNPlaceDataSnapshot
-                                        .data![index - 1].dayOfWeek.string,
-                                  ),
-                                  TextSpan(
-                                    text: _buildTimeString(
-                                      timeNPlaceDataSnapshot
-                                          .data![index - 1].startHour,
-                                      timeNPlaceDataSnapshot
-                                          .data![index - 1].startMinute,
-                                    ),
-                                  ),
-                                  const TextSpan(
-                                    text: '-',
-                                  ),
-                                  TextSpan(
-                                    text: _buildTimeString(
-                                      timeNPlaceDataSnapshot
-                                          .data![index - 1].endHour,
-                                      timeNPlaceDataSnapshot
-                                          .data![index - 1].endMinute,
-                                    ),
-                                  ),
-                                ],
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  color: Theme.of(context).highlightColor,
-                                ),
-                              ),
-                            ),
-                            Icon(
-                              Icons.keyboard_arrow_down_outlined,
-                              color: Theme.of(context).focusColor,
-                              size: 15,
-                            ),
-                          ],
-                        );
-                      }
-
-                      return const SizedBox.shrink();
-                    },
+                  child: const Center(
+                    child: Icon(
+                      Icons.delete_outlined,
+                    ),
                   ),
                   onPressed: () {
-                    _buildSelectTimeBottomSheet(context, index);
+                    _buildRemoveDialog(context, index);
                   },
                 ),
-                Row(
-                  children: [
-                    Container(
-                      height: appHeight * 0.05,
-                      width: appWidth * 0.8,
-                      padding: EdgeInsets.only(
-                        right: appWidth * 0.02,
-                      ),
-                      child: TextField(
-                        maxLines: 1,
-                        scrollPadding: EdgeInsets.zero,
-                        decoration: const InputDecoration(
-                          isDense: true,
-                          border: InputBorder.none,
-                          hintText: '장소',
-                          hintStyle: TextStyle(
-                            fontSize: 21,
-                          ),
-                        ),
-                        style: const TextStyle(
-                          fontSize: 21,
-                        ),
-                        cursorColor: Theme.of(context).focusColor,
-                        onTap: () {
-                          userBloc.updateIsShowingKeyboard(true);
-                        },
-                        onChanged: (value) {
-                          addDirectBloc.updateTimeNPlaceData(
-                            index - 1,
-                            place: value,
-                          );
-                        },
-                        onSubmitted: (value) {
-                          userBloc.updateIsShowingKeyboard(false);
-                        },
-                      ),
-                    ),
-                    SizedBox(
-                      width: appWidth * 0.1,
-                      child: MaterialButton(
-                        padding: EdgeInsets.zero,
-                        splashColor: Colors.transparent,
-                        highlightColor: Colors.transparent,
-                        child: const Center(
-                          child: Icon(
-                            Icons.delete_outlined,
-                          ),
-                        ),
-                        onPressed: () {
-                          _buildRemoveDialog(context, index);
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-                Container(
-                  height: 1,
-                  margin: EdgeInsets.only(
-                    bottom: appHeight * 0.0125,
-                  ),
-                  color: Theme.of(context).dividerColor,
-                ),
-              ],
+              ),
+            ],
+          ),
+          Container(
+            height: 1,
+            margin: EdgeInsets.only(
+              bottom: appHeight * 0.0125,
             ),
-          );
-        }
-      },
+            color: Theme.of(context).dividerColor,
+          ),
+        ],
+      ),
     );
   }
 
@@ -333,53 +337,15 @@ class DataInputAtAddDirectPage extends StatelessWidget {
             if (startTime.hour > endTime.hour ||
                 (startTime.hour == endTime.hour &&
                     startTime.minute >= endTime.minute)) {
-              showCupertinoDialog(
-                context: context,
-                builder: (dialogContext) {
-                  return CustomCupertinoAlertDialog(
-                    isDarkStream: userBloc.isDark,
-                    title: '종료시간을 시작시간\n이후로 설정해주세요.',
-                    actions: [
-                      CupertinoButton(
-                        padding: EdgeInsets.zero,
-                        child: const Text('확인'),
-                        onPressed: () {
-                          Navigator.pop(dialogContext);
-                        },
-                      ),
-                    ],
-                  );
-                },
-              );
+              _buildSetEndTimeDialog(context);
             } else {
-              Navigator.pop(bottomSheetContext);
-
-              userBloc.addDayOfWeek(dayOfWeekIndex);
-              userBloc.addTimeList(startTime.hour, endTime.hour);
-
-              addDirectBloc.updateTimeNPlaceData(
-                currentIndex - 1,
-                dayOfWeek: DayOfWeek.getByIndex(dayOfWeekIndex),
-                startHour: startTime.hour,
-                startMinute: startTime.minute,
-                endHour: endTime.hour,
-                endMinute: endTime.minute,
+              _doPassOnPressedSave(
+                bottomSheetContext: bottomSheetContext,
+                dayOfWeekIndex: dayOfWeekIndex,
+                startTime: startTime,
+                endTime: endTime,
+                currentIndex: currentIndex,
               );
-
-              if (timeTableScrollController.hasClients) {
-                timeTableScrollController.animateTo(
-                  _getScrollOffsetY(
-                    TimeNPlaceData(
-                      startHour: startTime.hour,
-                      startMinute: startTime.minute,
-                      endHour: endTime.hour,
-                      endMinute: endTime.minute,
-                    ),
-                  ),
-                  duration: const Duration(milliseconds: 200),
-                  curve: Curves.linear,
-                );
-              }
             }
           },
           picker: Container(
@@ -390,6 +356,7 @@ class DataInputAtAddDirectPage extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
+                // DayOfWeek Picker
                 SizedBox(
                   width: appWidth * 0.2,
                   child: CupertinoPicker(
@@ -416,6 +383,7 @@ class DataInputAtAddDirectPage extends StatelessWidget {
                     },
                   ),
                 ),
+                // StartTime Picker
                 SizedBox(
                   width: appWidth * 0.3,
                   child: CupertinoDatePicker(
@@ -436,6 +404,7 @@ class DataInputAtAddDirectPage extends StatelessWidget {
                     },
                   ),
                 ),
+                // EndTime Picker
                 SizedBox(
                   width: appWidth * 0.3,
                   child: CupertinoDatePicker(
@@ -462,6 +431,64 @@ class DataInputAtAddDirectPage extends StatelessWidget {
         );
       },
     );
+  }
+
+  void _buildSetEndTimeDialog(BuildContext context) {
+    showCupertinoDialog(
+      context: context,
+      builder: (dialogContext) {
+        return CustomCupertinoAlertDialog(
+          isDarkStream: userBloc.isDark,
+          title: '종료시간을 시작시간\n이후로 설정해주세요.',
+          actions: [
+            CupertinoButton(
+              padding: EdgeInsets.zero,
+              child: const Text('확인'),
+              onPressed: () {
+                Navigator.pop(dialogContext);
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _doPassOnPressedSave({
+    required BuildContext bottomSheetContext,
+    required int dayOfWeekIndex,
+    required DateTime startTime,
+    required DateTime endTime,
+    required int currentIndex,
+  }) {
+    Navigator.pop(bottomSheetContext);
+
+    userBloc.addDayOfWeek(dayOfWeekIndex);
+    userBloc.addTimeList(startTime.hour, endTime.hour);
+
+    addDirectBloc.updateTimeNPlaceData(
+      currentIndex - 1,
+      dayOfWeek: DayOfWeek.getByIndex(dayOfWeekIndex),
+      startHour: startTime.hour,
+      startMinute: startTime.minute,
+      endHour: endTime.hour,
+      endMinute: endTime.minute,
+    );
+
+    if (timeTableScrollController.hasClients) {
+      timeTableScrollController.animateTo(
+        _getScrollOffsetY(
+          TimeNPlaceData(
+            startHour: startTime.hour,
+            startMinute: startTime.minute,
+            endHour: endTime.hour,
+            endMinute: endTime.minute,
+          ),
+        ),
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.linear,
+      );
+    }
   }
 
   void _buildRemoveDialog(

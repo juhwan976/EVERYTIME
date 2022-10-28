@@ -51,6 +51,28 @@ class EverytimeUserBloc {
   List<TimeTable> get currentTimeTableList => _timeTableList.value;
   TimeTable? get currentSelectedTimeTable => _selectedTimeTable.value;
 
+  TimeTable? findTimeTableAtSpecificTerm(String termString) {
+    List<TimeTable> timeTableList = currentTimeTableList;
+    TimeTable? secondTimeTable;
+
+    for (TimeTable timeTable in timeTableList) {
+      if (timeTable.termString == termString) {
+        if (timeTable.currentIsDefault) {
+          return timeTable;
+        }
+
+        if (secondTimeTable == null) {
+          secondTimeTable = timeTable;
+          secondTimeTable.updateIsDefault(true);
+
+          break;
+        }
+      }
+    }
+
+    return secondTimeTable;
+  }
+
   void removeTimeTableDataAt(
     int currentIndex,
     List<TimeTableData> timeTableData,

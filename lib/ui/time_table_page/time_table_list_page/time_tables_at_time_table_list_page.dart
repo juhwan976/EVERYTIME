@@ -1,5 +1,5 @@
 import 'package:everytime/bloc/everytime_user_bloc.dart';
-import 'package:everytime/bloc/time_table_list_bloc.dart';
+import 'package:everytime/bloc/time_table_page/time_table_list_bloc.dart';
 import 'package:everytime/component/custom_container.dart';
 import 'package:everytime/component/custom_container_title.dart';
 import 'package:everytime/global_variable.dart';
@@ -66,7 +66,8 @@ class TimeTablesAtTimeTableListPage extends StatelessWidget {
   ) {
     return Container(
       height: sortedTimeTable[sortedTimeTableIndex].timeTables.length *
-          _buttonHeight,
+              (_buttonHeight + appHeight * 0.03) -
+          appHeight * 0.03,
       margin: EdgeInsets.only(
         top: appHeight * 0.01,
         left: appWidth * 0.05,
@@ -76,7 +77,10 @@ class TimeTablesAtTimeTableListPage extends StatelessWidget {
         children: List.generate(
           sortedTimeTable[sortedTimeTableIndex].timeTables.length,
           (timeTableIndex) {
-            return SizedBox(
+            return Container(
+              margin: EdgeInsets.only(
+                top: timeTableIndex != 0 ? appHeight * 0.03 : 0,
+              ),
               height: _buttonHeight,
               child: MaterialButton(
                 padding: EdgeInsets.zero,

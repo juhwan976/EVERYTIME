@@ -1,4 +1,4 @@
-import 'package:everytime/bloc/add_direct_bloc.dart';
+import 'package:everytime/bloc/time_table_page/add_direct_bloc.dart';
 import 'package:everytime/bloc/everytime_user_bloc.dart';
 import 'package:everytime/component/custom_container.dart';
 import 'package:everytime/component/time_table_page/time_table_chart.dart';
