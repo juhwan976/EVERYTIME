@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:everytime/model/time_table_page/time_table.dart';
 
 class SortedTimeTable {

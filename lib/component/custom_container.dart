@@ -7,11 +7,13 @@ class CustomContainer extends StatelessWidget {
     this.height,
     required this.child,
     this.usePadding = true,
+    this.useBorder = true,
   }) : super(key: key);
 
   final double? height;
   final Widget child;
   final bool usePadding;
+  final bool useBorder;
 
   //* right, left padding : appWidth * 0.05
 
@@ -32,9 +34,11 @@ class CustomContainer extends StatelessWidget {
           : null,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(
-          color: Theme.of(context).dividerColor,
-        ),
+        border: useBorder
+            ? Border.all(
+                color: Theme.of(context).dividerColor,
+              )
+            : null,
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(10),

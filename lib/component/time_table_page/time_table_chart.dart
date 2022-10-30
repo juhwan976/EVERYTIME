@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:everytime/bloc/everytime_user_bloc.dart';
 import 'package:everytime/component/custom_button_modal_bottom_sheet.dart';
 import 'package:everytime/component/custom_cupertino_alert_dialog.dart';
@@ -154,38 +152,7 @@ class TimeTableChart extends StatelessWidget {
                                   appHeight * 0.095,
                               child: Column(
                                 children: [
-                                  Expanded(
-                                    child: Container(
-                                      alignment: Alignment.topLeft,
-                                      color: Theme.of(context).backgroundColor,
-                                      padding: EdgeInsets.only(
-                                        top: appHeight * 0.035,
-                                        left: appWidth * 0.065,
-                                        right: appWidth * 0.065,
-                                      ),
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            timeTableData[i].subjectName,
-                                            style: const TextStyle(
-                                              fontSize: 20,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                          Text(
-                                            timeTableData[i].prof,
-                                            style: const TextStyle(
-                                              fontSize: 17,
-                                            ),
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
+                                  _buildSubjectInfo(context, i),
                                   CustomButtonModalBottomSheet(
                                     buttonList: [
                                       CustomButtonModalBottomSheetButton(
@@ -254,6 +221,40 @@ class TimeTableChart extends StatelessWidget {
     }
 
     return result;
+  }
+
+  Widget _buildSubjectInfo(BuildContext context, int index) {
+    return Expanded(
+      child: Container(
+        alignment: Alignment.topLeft,
+        color: Theme.of(context).backgroundColor,
+        padding: EdgeInsets.only(
+          top: appHeight * 0.035,
+          left: appWidth * 0.065,
+          right: appWidth * 0.065,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              timeTableData[index].subjectName,
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+            Text(
+              timeTableData[index].prof,
+              style: const TextStyle(
+                fontSize: 17,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _buildTimeTableElement(

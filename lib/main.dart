@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:everytime/ui/alarm_page.dart';
 import 'package:everytime/ui/board_page.dart';
 import 'package:everytime/ui/campus_pick_page.dart';
-import 'package:everytime/ui/home_page.dart';
+import 'package:everytime/ui/home_page/home_page.dart';
 import 'package:everytime/ui/time_table_page/time_table_page.dart';
 
 import 'package:everytime/bloc/main_bloc.dart';

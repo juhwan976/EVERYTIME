@@ -52,18 +52,18 @@ class AppBarAtAddTimeTablePage extends StatelessWidget {
             onPressed: () {
               if (timeTableNameController.text.isEmpty) {
                 _buildIncorrectTimeTableNameDialog();
+              } else {
+                TimeTable timeTable = TimeTable(
+                  termString: timeTableListBloc
+                      .currentTermList[timeTableListBloc.currentPickerIndex],
+                );
+                timeTable.updateName(timeTableNameController.text);
+
+                timeTableListBloc.sortTimeTable([timeTable]);
+                userBloc.addTimeTableList(timeTable);
+
+                Navigator.pop(pageContext);
               }
-
-              TimeTable timeTable = TimeTable(
-                termString: timeTableListBloc
-                    .currentTermList[timeTableListBloc.currentPickerIndex],
-              );
-              timeTable.updateName(timeTableNameController.text);
-
-              timeTableListBloc.sortTimeTable([timeTable]);
-              userBloc.addTimeTableList(timeTable);
-
-              Navigator.pop(pageContext);
             },
           ),
         ],

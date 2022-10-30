@@ -205,67 +205,94 @@ class _TimeTablePageState extends State<TimeTablePage>
   }
 
   _buildEditSettingBottomSheet(BuildContext context) {
+    List<CustomButtonModalBottomSheetButton> buttonList = [];
+
     showModalBottomSheet(
       context: context,
       builder: (bottomSheetContext) {
         return CustomButtonModalBottomSheet(
-          buttonList: [
-            CustomButtonModalBottomSheetButton(
-              icon: Icons.edit_outlined,
-              title: '이름 변경',
-              onPressed: () {
-                Navigator.pop(bottomSheetContext);
-                _buildEditNameDialog(context);
-              },
-            ),
-            CustomButtonModalBottomSheetButton(
-              icon: Icons.lock_outlined,
-              title: '공개 범위 변경',
-              onPressed: () {
-                Navigator.pop(bottomSheetContext);
-                _buildEditPrivacyBounds(
-                  context,
-                  widget
-                      .userBloc.currentSelectedTimeTable!.currentPrivacyBounds,
-                );
-              },
-            ),
-            CustomButtonModalBottomSheetButton(
-              icon: Icons.auto_fix_high_outlined,
-              title: '테마 및 스타일 변경',
-              onPressed: () {},
-            ),
-            CustomButtonModalBottomSheetButton(
-              icon: Icons.image_outlined,
-              title: '이미지로 저장',
-              onPressed: () {},
-            ),
-            CustomButtonModalBottomSheetButton(
-              icon: Icons.share_outlined,
-              title: 'URL로 공유',
-              onPressed: () {},
-            ),
-            CustomButtonModalBottomSheetButton(
-              icon: Icons.chat_outlined,
-              title: '카카오톡으로 공유',
-              onPressed: () {},
-            ),
-            CustomButtonModalBottomSheetButton(
-              icon: Icons.delete_outline,
-              title: '삭제',
-              onPressed: () {
-                Navigator.pop(bottomSheetContext);
-                _buildRemoveTimeTableDialog(context);
-              },
-            ),
-            //TODO: 기본 시간표로 지정 추가하기.
-          ],
+          buttonList: _buildButtonList(bottomSheetContext),
         );
       },
     );
   }
 
-  _routeTimeTableListPage(BuildContext context) {
+  List<CustomButtonModalBottomSheetButton> _buildButtonList(
+      BuildContext bottomSheetContext) {
+    List<CustomButtonModalBottomSheetButton> buttonList = [
+      CustomButtonModalBottomSheetButton(
+        icon: Icons.edit_outlined,
+        title: '이름 변경',
+        onPressed: () {
+          Navigator.pop(bottomSheetContext);
+          _buildEditNameDialog(context);
+        },
+      ),
+      CustomButtonModalBottomSheetButton(
+        icon: Icons.lock_outlined,
+        title: '공개 범위 변경',
+        onPressed: () {
+          Navigator.pop(bottomSheetContext);
+          _buildEditPrivacyBounds(
+            context,
+            widget.userBloc.currentSelectedTimeTable!.currentPrivacyBounds,
+          );
+        },
+      ),
+      CustomButtonModalBottomSheetButton(
+        icon: Icons.auto_fix_high_outlined,
+        title: '테마 및 스타일 변경',
+        onPressed: () {},
+      ),
+      CustomButtonModalBottomSheetButton(
+        icon: Icons.image_outlined,
+        title: '이미지로 저장',
+        onPressed: () {},
+      ),
+      CustomButtonModalBottomSheetButton(
+        icon: Icons.share_outlined,
+        title: 'URL로 공유',
+        onPressed: () {},
+      ),
+      CustomButtonModalBottomSheetButton(
+        icon: Icons.chat_outlined,
+        title: '카카오톡으로 공유',
+        onPressed: () {},
+      ),
+      CustomButtonModalBottomSheetButton(
+        icon: Icons.delete_outline,
+        title: '삭제',
+        onPressed: () {
+          Navigator.pop(bottomSheetContext);
+          _buildRemoveTimeTableDialog(context);
+        },
+      ),
+    ];
+
+    if (!widget.userBloc.currentSelectedTimeTable!.currentIsDefault) {
+      buttonList.add(
+        CustomButtonModalBottomSheetButton(
+          icon: Icons.push_pin_outlined,
+          title: '기본 시간표로 지정',
+          onPressed: () {
+            TimeTable currentDefaultTimeTable =
+                widget.userBloc.findTimeTableAtSpecificTerm(
+              widget.userBloc.currentSelectedTimeTable!.termString,
+            )!;
+
+            currentDefaultTimeTable.updateIsDefault(false);
+            widget.userBloc.currentSelectedTimeTable!.updateIsDefault(true);
+
+            Navigator.pop(bottomSheetContext);
+          },
+        ),
+      );
+    }
+
+    return buttonList;
+  }
+
+  void _routeTimeTableListPage(BuildContext context) {
     Navigator.push(
       context,
       CupertinoPageRoute(

@@ -18,8 +18,6 @@ class AddSubjectPage extends StatefulWidget {
   State<AddSubjectPage> createState() => _AddSubjectPageState();
 }
 
-//TODO: 시간표 시간 입력하면 끝나는 시간 기준으로 시간표 스크롤 옮기기
-
 class _AddSubjectPageState extends State<AddSubjectPage> {
   void _routeAddDirectPage(BuildContext context) {
     Navigator.of(context).push(
@@ -147,16 +145,24 @@ class _AddSubjectPageState extends State<AddSubjectPage> {
                           stream: widget.userBloc.dayOfWeek,
                           builder: (_, dayOfWeekSnapshot) {
                             if (dayOfWeekSnapshot.hasData) {
-                              return TimeTableChart(
-                                userBloc: widget.userBloc,
-                                timeTableData: widget
-                                    .userBloc
-                                    .currentSelectedTimeTable!
-                                    .currentTimeTableData,
-                                startHour: timeListSnapshot.data![0],
-                                timeList: timeListSnapshot.data!,
-                                dayOfWeekList: dayOfWeekSnapshot.data!,
-                                isActivateButton: false,
+                              return StreamBuilder(
+                                stream: widget.userBloc
+                                    .currentSelectedTimeTable!.timeTableData,
+                                builder: (_, timeTableDataSnapshot) {
+                                  if (timeTableDataSnapshot.hasData) {
+                                    return TimeTableChart(
+                                      userBloc: widget.userBloc,
+                                      timeTableData:
+                                          timeTableDataSnapshot.data!,
+                                      startHour: timeListSnapshot.data![0],
+                                      timeList: timeListSnapshot.data!,
+                                      dayOfWeekList: dayOfWeekSnapshot.data!,
+                                      isActivateButton: false,
+                                    );
+                                  }
+
+                                  return const SizedBox.shrink();
+                                },
                               );
                             }
 

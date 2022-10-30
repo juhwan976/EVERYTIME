@@ -20,6 +20,12 @@ class EverytimeUserBloc {
   /// 유저 학교
   final _univ = BehaviorSubject<String>();
 
+  /// 유저 닉네임
+  final _nickName = BehaviorSubject<String>();
+
+  /// 유저 아이디
+  final _id = BehaviorSubject<String>();
+
   /// 유저의 친구
   /// TODO:  시간표 완성하고 이 구문도 수정
   // final _userFriends = BehaviorSubject<List<EveryTimeFriend>>();
@@ -823,6 +829,8 @@ class EverytimeUserBloc {
   void dispose() {
     _name.close();
     _univ.close();
+    _nickName.close();
+    _id.close();
 
     //****************************************************************************************************
     for (int i = 0; i < _timeTableList.value.length; i++) {
