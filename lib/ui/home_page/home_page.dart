@@ -79,7 +79,9 @@ class _HomePageState extends State<HomePage>
                             context,
                             CupertinoPageRoute(
                               builder: (BuildContext pageContext) {
-                                return MyInfoPage();
+                                return MyInfoPage(
+                                  userBloc: widget.userBloc,
+                                );
                               },
                             ),
                           );

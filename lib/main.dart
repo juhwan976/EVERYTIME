@@ -94,8 +94,13 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
     _userBloc.updateTermString();
 
     // 이하는 테스트용 구문
-    _userBloc.initGradeCalTest();
+    _userBloc.updateName('장주환');
+    _userBloc.updateNickName('밥먹을래요');
+    _userBloc.updateId('juhwan976');
     _userBloc.updateUniv('에타대학');
+    _userBloc.updateYear(16);
+
+    _userBloc.initGradeCalTest();
   }
 
   @override

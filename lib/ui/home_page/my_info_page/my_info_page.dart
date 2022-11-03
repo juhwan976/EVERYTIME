@@ -1,3 +1,4 @@
+import 'package:everytime/bloc/everytime_user_bloc.dart';
 import 'package:everytime/component/custom_container.dart';
 import 'package:everytime/component/custom_container_title.dart';
 import 'package:everytime/global_variable.dart';
@@ -6,7 +7,10 @@ import 'package:flutter/material.dart';
 class MyInfoPage extends StatefulWidget {
   const MyInfoPage({
     Key? key,
+    required this.userBloc,
   }) : super(key: key);
+
+  final EverytimeUserBloc userBloc;
 
   @override
   State<MyInfoPage> createState() => _MyInfoPageState();
@@ -60,6 +64,85 @@ class _MyInfoPageState extends State<MyInfoPage> {
                             decoration: BoxDecoration(
                               color: Colors.grey,
                               borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          Container(
+                            margin: EdgeInsets.only(
+                              top: appHeight * 0.025,
+                              left: appWidth * 0.025,
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                StreamBuilder(
+                                  stream: widget.userBloc.id,
+                                  builder: (_, idSnapshot) {
+                                    if (idSnapshot.hasData) {
+                                      return Text(
+                                        idSnapshot.data!,
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 15,
+                                        ),
+                                      );
+                                    }
+
+                                    return const SizedBox.shrink();
+                                  },
+                                ),
+                                StreamBuilder(
+                                  stream: widget.userBloc.name,
+                                  builder: (_, nameSnapshot) {
+                                    if (nameSnapshot.hasData) {
+                                      return StreamBuilder(
+                                        stream: widget.userBloc.nickName,
+                                        builder: (__, nickNameSnapshot) {
+                                          if (nickNameSnapshot.hasData) {
+                                            return Text(
+                                              '${nameSnapshot.data!} / ${nickNameSnapshot.data!}',
+                                              style: TextStyle(
+                                                color:
+                                                    Theme.of(context).hintColor,
+                                                fontSize: 15,
+                                              ),
+                                            );
+                                          }
+
+                                          return const SizedBox.shrink();
+                                        },
+                                      );
+                                    }
+
+                                    return const SizedBox.shrink();
+                                  },
+                                ),
+                                StreamBuilder(
+                                  stream: widget.userBloc.univ,
+                                  builder: (_, univSnapshot) {
+                                    if (univSnapshot.hasData) {
+                                      return StreamBuilder(
+                                        stream: widget.userBloc.year,
+                                        builder: (__, yearSnapshot) {
+                                          if (yearSnapshot.hasData) {
+                                            return Text(
+                                              '${univSnapshot.data!} ${yearSnapshot.data}학번',
+                                              style: TextStyle(
+                                                color:
+                                                    Theme.of(context).hintColor,
+                                                fontSize: 15,
+                                              ),
+                                            );
+                                          }
+
+                                          return const SizedBox.shrink();
+                                        },
+                                      );
+                                    }
+
+                                    return const SizedBox.shrink();
+                                  },
+                                ),
+                              ],
                             ),
                           ),
                         ],
