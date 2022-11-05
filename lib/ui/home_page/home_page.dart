@@ -4,6 +4,7 @@ import 'package:everytime/component/custom_appbar_animation.dart';
 import 'package:everytime/component/custom_appbar_button.dart';
 import 'package:everytime/global_variable.dart';
 import 'package:everytime/ui/home_page/my_info_page/my_info_page.dart';
+import 'package:everytime/ui/home_page/search_page/search_page.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:rxdart/subjects.dart';
@@ -70,7 +71,17 @@ class _HomePageState extends State<HomePage>
                     buttonList: [
                       CustomAppBarButton(
                         icon: Icons.search_rounded,
-                        onPressed: () {},
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            CupertinoPageRoute(
+                                builder: (BuildContext pageContext) {
+                              return SearchPage(
+                                userBloc: widget.userBloc,
+                              );
+                            }),
+                          );
+                        },
                       ),
                       CustomAppBarButton(
                         icon: Icons.person_outline,
@@ -79,7 +90,9 @@ class _HomePageState extends State<HomePage>
                             context,
                             CupertinoPageRoute(
                               builder: (BuildContext pageContext) {
-                                return MyInfoPage();
+                                return MyInfoPage(
+                                  userBloc: widget.userBloc,
+                                );
                               },
                             ),
                           );

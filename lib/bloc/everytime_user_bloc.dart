@@ -26,15 +26,24 @@ class EverytimeUserBloc {
   /// 유저 아이디
   final _id = BehaviorSubject<String>();
 
+  /// 유저가 입학한 년도
+  final _year = BehaviorSubject<int>();
+
   /// 유저의 친구
   /// TODO:  시간표 완성하고 이 구문도 수정
   // final _userFriends = BehaviorSubject<List<EveryTimeFriend>>();
 
   Stream<String> get name => _name.stream;
   Stream<String> get univ => _univ.stream;
+  Stream<String> get nickName => _nickName.stream;
+  Stream<String> get id => _id.stream;
+  Stream<int> get year => _year.stream;
 
   Function(String) get updateName => _name.sink.add;
   Function(String) get updateUniv => _univ.sink.add;
+  Function(String) get updateNickName => _nickName.sink.add;
+  Function(String) get updateId => _id.sink.add;
+  Function(int) get updateYear => _year.sink.add;
 
   //****************************************************************************************************
   // 시간표 관련
@@ -831,6 +840,7 @@ class EverytimeUserBloc {
     _univ.close();
     _nickName.close();
     _id.close();
+    _year.close();
 
     //****************************************************************************************************
     for (int i = 0; i < _timeTableList.value.length; i++) {
